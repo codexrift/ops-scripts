@@ -63,6 +63,7 @@ Notes:
 - `winget` must already be available on the system.
 - This script installs many packages automatically, so review the list before running it.
 - Some installs may prompt, fail, or require elevation depending on package behavior and system policy.
+- It also installs WSL with `Ubuntu` if missing, or updates WSL and Ubuntu packages if it is already installed.
 
 ### `list_files.bat`
 
