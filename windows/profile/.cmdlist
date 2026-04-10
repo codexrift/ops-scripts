@@ -1,0 +1,15 @@
+﻿& nbtstat -A <ip> # #Batch Display NetBIOS table of a remote computer by IP (external exe)
+& nbtstat -a <name> # #Batch Display NetBIOS table of a remote computer by name (external exe)
+& nbtstat -c # #Batch Show NetBIOS name cache (external exe)
+& nbtstat -n # #Batch List local NetBIOS names (external exe)
+& nbtstat -r # #Batch Show NetBIOS name resolution statistics (external exe)
+& nbtstat -R # #Batch Purge and reload the remote name cache table (external exe)
+& nbtstat -RR # #Batch Release and refresh NetBIOS names with WINS (if used) (external exe)
+& nbtstat -S # #Batch List current NetBIOS sessions (external exe)
+Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient # #PowerShell Enable Windows Telnet Client feature (optional)
+Get-NetNeighbor # #PowerShell Show ARP/neighbor table
+Get-SmbConnection # #PowerShell List SMB client connections (often more useful than NetBIOS sessions)
+Get-WindowsOptionalFeature -Online -FeatureName TelnetClient # #PowerShell Check Telnet Client feature state
+Test-NetConnection 127.0.0.1 -Port 25 # #PowerShell Test local SMTP port (example)
+Test-NetConnection example.com -Port 443 # #PowerShell Test TCP 443 (tnc = Test-NetConnection)
+Test-NetConnection example.com -Port 80 # #PowerShell Telnet-like TCP connect test (PowerShell)
