@@ -93,6 +93,9 @@ mysql -u root -p -e "SHOW DATABASES;" # Run a one-off query and exit
 mysqldump -u root -p --all-databases > all.sql # Dump all databases (admin)
 mysqldump -u root -p --databases appdb > appdb.sql # Dump a database to a SQL file
 mysqldump -u root -p --single-transaction --quick --routines --triggers appdb > appdb.sql # Safer dump for InnoDB + include routines/triggers
+nc -l -p <port> # Start a TCP listener on a port (traditional netcat syntax)
+nc -lv 0.0.0.0 <port> # Start a TCP listener on all interfaces (OpenBSD netcat syntax)
+nc -ulv 0.0.0.0 <port> # Start a UDP listener on all interfaces (OpenBSD netcat syntax)
 nc -vz host 443 # Test TCP port reachability (netcat)
 netstat -natup | grep LISTEN # List listening ports (legacy net-tools; prefer ss)
 nslookup example.com # DNS lookup (fallback)
@@ -104,6 +107,7 @@ ps aux --sort=-%mem | head # Top memory processes
 ps awxf # Process tree with full command lines (ps)
 pwd # Print working directory
 python3 -m http.server 8000 # Quick local HTTP server (Python)
+python3 -m http.server <port> --bind 0.0.0.0 # Simple HTTP listener on all interfaces (Python)
 rg "PATTERN" . # Search text fast (ripgrep)
 rm -i file # Remove file (confirm)
 rm -rf dir # Remove directory tree (danger)
