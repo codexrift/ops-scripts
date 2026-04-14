@@ -1,4 +1,4 @@
-﻿/usr/bin/time -v <command> # Time a command with resource usage (if available)
+/usr/bin/time -v <command> # Time a command with resource usage (if available)
 apt list --upgradable # List upgradable packages (Debian/Ubuntu)
 apt-cache policy <pkg> # Show candidate versions (Debian/Ubuntu)
 awk "{print $1}" file # Print first column (awk)

@@ -1,0 +1,6 @@
+*.sh text eol=lf
+*.bashrc text eol=lf
+linux/.bashrc.custom/.bashrc text eol=lf
+linux/.bashrc.custom/.cmdlist text eol=lf
+windows/profile/*.ps1 text eol=crlf
+windows/profile/.cmdlist text eol=crlf
