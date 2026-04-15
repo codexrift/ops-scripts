@@ -1,15 +1,23 @@
-﻿& nbtstat -A <ip> # #Batch Display NetBIOS table of a remote computer by IP (external exe)
-& nbtstat -a <name> # #Batch Display NetBIOS table of a remote computer by name (external exe)
-& nbtstat -c # #Batch Show NetBIOS name cache (external exe)
-& nbtstat -n # #Batch List local NetBIOS names (external exe)
-& nbtstat -r # #Batch Show NetBIOS name resolution statistics (external exe)
-& nbtstat -R # #Batch Purge and reload the remote name cache table (external exe)
-& nbtstat -RR # #Batch Release and refresh NetBIOS names with WINS (if used) (external exe)
-& nbtstat -S # #Batch List current NetBIOS sessions (external exe)
-Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient # #PowerShell Enable Windows Telnet Client feature (optional)
-Get-NetNeighbor # #PowerShell Show ARP/neighbor table
-Get-SmbConnection # #PowerShell List SMB client connections (often more useful than NetBIOS sessions)
-Get-WindowsOptionalFeature -Online -FeatureName TelnetClient # #PowerShell Check Telnet Client feature state
-Test-NetConnection 127.0.0.1 -Port 25 # #PowerShell Test local SMTP port (example)
-Test-NetConnection example.com -Port 443 # #PowerShell Test TCP 443 (tnc = Test-NetConnection)
-Test-NetConnection example.com -Port 80 # #PowerShell Telnet-like TCP connect test (PowerShell)
+﻿$listener=[System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any,<port>);$listener.Start();Write-Host "Listening TCP on <port>";while($true){$client=$listener.AcceptTcpClient();$client.Close()} # TCP listener on a port (connectivity test)
+$udp=[System.Net.Sockets.UdpClient]::new(<port>);$remote=[System.Net.IPEndPoint]::new([System.Net.IPAddress]::Any,0);Write-Host "Listening UDP on <port>";while($true){$bytes=$udp.Receive([ref]$remote);"$($remote.Address):$($remote.Port)"} # UDP listener on a port (connectivity test)
+Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient # Enable Windows Telnet Client feature (optional)
+Get-CimInstance Win32_ComputerSystem # Basic system info (CIM/WMI)
+Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object IPEnabled # IP-enabled NIC details (CIM/WMI)
+Get-CimInstance Win32_OperatingSystem # OS info (CIM/WMI)
+Get-Date -Format o # ISO-8601 timestamp
+Get-ExecutionPolicy -List # Show effective execution policies
+Get-NetIPAddress # Show IP addresses
+Get-NetNeighbor # Show ARP/neighbor table
+Get-NetRoute # Show routing table
+Get-NetTCPConnection -State Listen # Listening TCP sockets
+Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 # Top CPU processes
+Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 10 # Top memory processes
+Get-Service | Where-Object Status -eq Running # Running services
+Get-SmbConnection # SMB client connections
+Get-WindowsOptionalFeature -Online -FeatureName TelnetClient # Check Telnet Client feature state
+Invoke-RestMethod https://api.github.com -Headers @{ "User-Agent" = "pwsh" } # Fetch JSON and parse
+Invoke-WebRequest https://example.com -UseBasicParsing # Fetch a URL (HTML/text)
+Resolve-DnsName example.com # DNS lookup
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass # Temporary execution policy for this session only
+Test-NetConnection 127.0.0.1 -Port 25 # TCP connect test (example)
+Test-NetConnection example.com -Port 443 # TCP connect test (HTTPS)

@@ -10,14 +10,20 @@ Files:
 
 - `linux/profile/.bashrc`: defines `cmdhelp` (searches `.cmdlist` and colorizes output)
 - `linux/profile/.cmdlist`: command snippets in `command # comment` format
-- `linux/profile/install-bashrc.custom.sh`: installer (copies into `~/.bashrc.custom/` and updates `~/.bashrc`)
+- `linux/profile/install-profile.sh`: installer (copies into `~/.bashrc.custom/` and updates `~/.bashrc`)
 
 Install (Linux/WSL):
 
 ```bash
-bash linux/profile/install-bashrc.custom.sh
+bash linux/profile/install-profile.sh
 # or (to reload immediately in the current shell)
-source linux/profile/install-bashrc.custom.sh
+source linux/profile/install-profile.sh
+```
+
+Disable:
+
+```bash
+bash linux/profile/install-profile.sh /disable
 ```
 
 Use:
@@ -44,15 +50,46 @@ Install (PowerShell):
 .\windows\powershell\profile\install-profile.bat
 ```
 
+Disable:
+
+```powershell
+.\windows\powershell\profile\install-profile.ps1 /disable
+```
+
 Use:
 
 ```powershell
 cmdhelp ssh
-ch ssh
-chmdhelp ssh
 ```
 
 Note: `install-profile.ps1` may set the CurrentUser execution policy to `RemoteSigned` (unless blocked by Group Policy).
+
+## Windows: Command Prompt `cmdhelp`
+
+Files:
+
+- `windows/cmd/profile/cmdhelp.bat`: implements `cmdhelp` for `cmd.exe`
+- `windows/cmd/profile/.cmdlist`: command snippets in `command # comment` format
+- `windows/cmd/profile/install-profile.bat`: installer (copies to `%USERPROFILE%\.cmd.profile.custom` and enables `cmd.exe` AutoRun; pass `/disable` to remove)
+
+Install:
+
+```powershell
+.\windows\cmd\profile\install-profile.bat
+```
+
+Disable:
+
+```powershell
+.\windows\cmd\profile\install-profile.bat /disable
+```
+
+Use:
+
+```bat
+call "%USERPROFILE%\.cmd.profile.custom\profile.bat"
+cmdhelp ssh
+```
 
 ## Windows: Batch utilities
 

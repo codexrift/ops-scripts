@@ -3,6 +3,12 @@ $ErrorActionPreference = 'Stop'
 
 $isDotSourced = $MyInvocation.InvocationName -eq '.'
 
+if ($args -contains '/disable' -or $args -contains 'disable' -or $args -contains '--disable') {
+  $script:Disable = $true
+} else {
+  $script:Disable = $false
+}
+
 function Ensure-ProfileExecutionPolicy {
   $policyList = Get-ExecutionPolicy -List
   $machinePolicy = ($policyList | Where-Object Scope -eq 'MachinePolicy').ExecutionPolicy
@@ -32,13 +38,34 @@ $targetDir = Join-Path $profileDir 'profile.custom'
 $targetScript = Join-Path $targetDir 'cmdhelp.ps1'
 $targetCmdList = Join-Path $targetDir '.cmdlist'
 
-New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
-Copy-Item -LiteralPath (Join-Path $sourceDir 'cmdhelp.ps1') -Destination $targetScript -Force
-Copy-Item -LiteralPath (Join-Path $sourceDir '.cmdlist') -Destination $targetCmdList -Force
-
 New-Item -ItemType Directory -Force -Path $profileDir | Out-Null
 $escapedTargetScript = $targetScript.Replace("'", "''")
 $loaderLine = ". '$escapedTargetScript'"
+
+if ($script:Disable) {
+  foreach ($profilePath in $profilePaths) {
+    if (-not (Test-Path -LiteralPath $profilePath)) { continue }
+    $lines = Get-Content -LiteralPath $profilePath -ErrorAction SilentlyContinue
+    $filtered = $lines | Where-Object { $_ -ne $loaderLine -and $_ -ne '# cmdhelp profile' }
+    Set-Content -LiteralPath $profilePath -Value $filtered -Encoding utf8
+  }
+
+  Remove-Item -LiteralPath $targetScript -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $targetCmdList -ErrorAction SilentlyContinue
+  try { Remove-Item -LiteralPath $targetDir -Force -ErrorAction SilentlyContinue } catch { }
+
+  if (-not $isDotSourced) {
+    Write-Host 'Disabled PowerShell cmdhelp auto-load.'
+    foreach ($profilePath in $profilePaths) {
+      Write-Host "Profile updated: $profilePath"
+    }
+  }
+  return
+}
+
+New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+Copy-Item -LiteralPath (Join-Path $sourceDir 'cmdhelp.ps1') -Destination $targetScript -Force
+Copy-Item -LiteralPath (Join-Path $sourceDir '.cmdlist') -Destination $targetCmdList -Force
 
 foreach ($profilePath in $profilePaths) {
   $profileParentDir = Split-Path -Parent $profilePath

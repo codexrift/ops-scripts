@@ -1,0 +1,35 @@
+﻿arp -a # ARP table
+cd # Show current directory
+cd /d C:\ # Change drive+directory
+certutil -hashfile file.iso SHA256 # Compute SHA256 hash
+curl -I https://example.com # HTTP headers (curl on modern Windows)
+dir /a # List files (include hidden/system)
+dir /s /b *.log # Find files by pattern (recursive, bare)
+findstr /n /i "error" *.log # Search in files (case-insensitive)
+findstr /s /n /i "error" C:\path\to\logs\*.log # Recursive search in a folder
+ipconfig /all # Network config
+more file.txt # Pager for long output
+net share # List local shares
+net use # List SMB mappings
+net use \\server\share /user:DOMAIN\user # Map SMB share (prompts for password)
+netstat -ano # TCP/UDP sockets with PID
+netstat -ano | findstr LISTENING # Listening sockets (legacy)
+nslookup example.com # DNS lookup
+ping -n 4 1.1.1.1 # Ping 4 times
+route print # Routing table
+sc query <service> # Query a Windows service
+sc start <service> # Start a Windows service
+sc stop <service> # Stop a Windows service
+scp file.txt user@host:/tmp/ # SCP copy (if OpenSSH client installed)
+set # Show environment variables
+set FOO=bar # Set env var for this session
+set PATH # Show PATH
+setx FOO "bar" # Set env var permanently (future sessions)
+ssh user@host # SSH (if OpenSSH client installed)
+taskkill /pid <pid> /t /f # Kill process tree (force)
+tasklist # List processes
+tasklist /fi "imagename eq chrome.exe" # Filter process list
+tracert 1.1.1.1 # Trace route
+type file.txt # Print file contents
+where /r C:\ python.exe # Find a file recursively from a root
+where ssh # Find executable in PATH
