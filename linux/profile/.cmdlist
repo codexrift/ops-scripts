@@ -97,7 +97,7 @@ nc -l -p <port> # Start a TCP listener on a port (traditional netcat syntax)
 nc -lv 0.0.0.0 <port> # Start a TCP listener on all interfaces (OpenBSD netcat syntax)
 nc -ulv 0.0.0.0 <port> # Start a UDP listener on all interfaces (OpenBSD netcat syntax)
 nc -vz host 443 # Test TCP port reachability (netcat)
-netstat -natup | grep LISTEN # List listening ports (legacy net-tools; prefer ss)
+netstat -natup | grep LISTEN | sort -k 7 # List listening ports and sort by program name (legacy net-tools)
 nslookup example.com # DNS lookup (fallback)
 ping -c 4 1.1.1.1 # Test connectivity
 pkill -f "pattern" # Kill by process command line match

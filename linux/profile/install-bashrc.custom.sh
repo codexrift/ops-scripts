@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-is_sourced=0
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-  is_sourced=1
-fi
-
 d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 t="${HOME}/.bashrc.custom"
 
@@ -20,4 +15,10 @@ touch "${HOME}/.bashrc"
 l='[ -f "$HOME/.bashrc.custom/.bashrc" ] && . "$HOME/.bashrc.custom/.bashrc"'
 grep -Fqx "$l" "${HOME}/.bashrc" 2>/dev/null || printf '\n# bashrc custom\n%s\n' "$l" >> "${HOME}/.bashrc"
 
-printf 'Run: source "%s/.bashrc"\n' "${HOME}"
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  # When sourced, reload into the current shell.
+  # shellcheck disable=SC1090
+  source "${HOME}/.bashrc" >/dev/null 2>&1 || true
+else
+  printf 'Run: source "%s/.bashrc"\n' "${HOME}"
+fi

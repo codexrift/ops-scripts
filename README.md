@@ -1,110 +1,93 @@
-# ops-scripts
+﻿# ops-scripts
 
-Small Windows batch utilities for diagnostics, workstation setup, and file inventory tasks.
+Personal utilities for Windows and Linux, plus small "command help" profiles (`cmdhelp`) for Bash and PowerShell.
 
-This repository is a personal utility collection centered on `.bat` scripts that run directly on Windows. The scripts are intended for local administration and troubleshooting rather than as a packaged application.
+This repo is meant for local administration and troubleshooting, not as a packaged application.
 
-## Included Scripts
+## Linux: Bash `cmdhelp`
 
-### `system_diagnostics.bat`
+Files:
 
-Collects a broad Windows diagnostics snapshot and writes the results into files in the same folder as the script.
+- `linux/profile/.bashrc`: defines `cmdhelp` (searches `.cmdlist` and colorizes output)
+- `linux/profile/.cmdlist`: command snippets in `command # comment` format
+- `linux/profile/install-bashrc.custom.sh`: installer (copies into `~/.bashrc.custom/` and updates `~/.bashrc`)
 
-It gathers information such as:
+Install (Linux/WSL):
 
-- OS version and system configuration
-- environment variables and user security context
-- BIOS, CPU, RAM, motherboard, disks, and drivers
-- services, scheduled tasks, and Group Policy results
-- network configuration, routes, connections, DNS, ping, and traceroute
-- firewall, local users/groups, Defender status, and update services
-- event logs, DISM logs, CBS logs, and crash-report directories
-- battery and energy reports
-
-Typical output files include:
-
-- `report.txt`
-- `gpresult.html`
-- `batteryreport.html`
-- `energyreport.html`
-
-Run it from Command Prompt or PowerShell:
-
-```powershell
-.\system_diagnostics.bat
+```bash
+bash linux/profile/install-bashrc.custom.sh
+# or (to reload immediately in the current shell)
+source linux/profile/install-bashrc.custom.sh
 ```
 
-Notes:
+Use:
 
-- Some commands may return more detail when run as Administrator.
-- The generated report can contain sensitive local machine data.
-- The script can take a while to finish because it runs many system commands.
-
-### `software_install.bat`
-
-Uses `winget` to upgrade App Installer and then install a large set of applications for a Windows workstation.
-
-The package list is grouped broadly into:
-
-- base tools
-- sysadmin and developer tools
-- creative software
-- gaming tools
-- miscellaneous utilities
-
-Run it with:
-
-```powershell
-.\software_install.bat
+```bash
+cmdhelp ssh
+cmdhelp port
 ```
 
-Notes:
+## Windows: PowerShell `cmdhelp`
 
-- `winget` must already be available on the system.
-- This script installs many packages automatically, so review the list before running it.
-- Some installs may prompt, fail, or require elevation depending on package behavior and system policy.
-- It also installs WSL with `Ubuntu` if missing, or updates WSL and Ubuntu packages if it is already installed.
+Files:
 
-### `list_files.bat`
+- `windows/powershell/profile/cmdhelp.ps1`: implements `cmdhelp` for PowerShell
+- `windows/powershell/profile/.cmdlist`: command snippets in `command # comment` format
+- `windows/powershell/profile/install-profile.ps1`: installer (copies to `profile.custom` and updates `$PROFILE`)
+- `windows/powershell/profile/install-profile.bat`: convenience wrapper for the installer
 
-Scans available drive letters from `C:` through `Z:` and writes a recursive file-only listing to `all_files.txt`.
-
-Run it with:
+Install (PowerShell):
 
 ```powershell
-.\list_files.bat
+.\windows\powershell\profile\install-profile.ps1
+# or
+.\windows\powershell\profile\install-profile.bat
 ```
 
-Notes:
+Use:
 
-- The scan can take a long time on large disks or external drives.
-- The output file may become very large.
-- Access-denied messages from protected folders may still appear depending on permissions.
+```powershell
+cmdhelp ssh
+ch ssh
+chmdhelp ssh
+```
+
+Note: `install-profile.ps1` may set the CurrentUser execution policy to `RemoteSigned` (unless blocked by Group Policy).
+
+## Windows: Batch utilities
+
+Located in `windows/cmd/`:
+
+- `windows/cmd/system_diagnostics.bat`: collect a Windows diagnostics snapshot (can include sensitive info)
+- `windows/cmd/list_files.bat`: recursive file listing across drive letters
+- `windows/cmd/F15.bat`: local helper (repo-specific)
 
 ## Requirements
 
-- Windows
-- Command Prompt or PowerShell
-- `winget` for `software_install.bat`
-- Administrator privileges recommended for fuller diagnostics and some installs
+- Windows: Command Prompt / PowerShell
+- Linux/WSL: Bash
 
 ## Repository Layout
 
 ```text
 ops-scripts/
-|-- list_files.bat
-|-- software_install.bat
-`-- system_diagnostics.bat
+|-- docs/
+|-- linux/
+|   `-- profile/
+|-- windows/
+    |-- cmd/
+    `-- powershell/
+        `-- profile/
 ```
 
 ## Safety
 
-These scripts operate on the local machine and may expose system details or trigger large changes.
+These scripts operate on the local machine and may expose system details or trigger changes.
 
 - Review each script before running it.
-- Avoid sharing generated diagnostic reports without checking them for sensitive information.
-- Treat `software_install.bat` as a personal bootstrap script, not a minimal installer.
+- Avoid sharing generated diagnostic reports without checking for sensitive information.
 
 ## License
 
 No license file is currently present in this repository. Add one if you want to make reuse terms explicit.
+
