@@ -33,6 +33,17 @@ cmdhelp ssh
 cmdhelp port
 ```
 
+## Linux: Ansible deploy
+
+Playbooks live in `ansible/playbooks/`. To deploy the Linux profile snippets:
+
+```bash
+cd ansible
+./run-ansible-playbooks.sh playbooks/deploy_profile.yml
+```
+
+This playbook copies `linux/profile/.custom/` into `~/.bashrc.custom/` and ensures a single line exists at the end of `~/.bashrc` to source `~/.config/shell/*.sh`.
+
 ## Windows: PowerShell `cmdhelp`
 
 Files:

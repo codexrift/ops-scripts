@@ -1,4 +1,56 @@
-/usr/bin/time -v <command> # Time a command with resource usage (if available)
+cmdhelp() {
+  local query use_color
+
+  query="$*"
+  use_color=0
+
+  if [[ -t 1 ]]; then
+    use_color=1
+    if command -v tput >/dev/null 2>&1; then
+      if [[ "$(tput colors 2>/dev/null || echo 0)" -lt 8 ]]; then
+        use_color=0
+      fi
+    fi
+  fi
+
+  if [[ -z "${query}" ]]; then
+    _cmdhelp_data | _cmdhelp_format "${use_color}"
+  else
+    _cmdhelp_data | grep -iF -- "${query}" | _cmdhelp_format "${use_color}"
+  fi
+}
+
+_cmdhelp_format() {
+  local use_color
+  use_color="${1:-0}"
+
+  awk -v color="${use_color}" '
+    BEGIN {
+      # Keep it subtle: command stays uncolored, comment is dimmed.
+      cmdc  = ""
+      hashc = "\033[2;90m" # dim dark gray
+      comc  = "\033[2;37m" # dim light gray
+      reset = "\033[0m"
+    }
+    {
+      line = $0
+      n = index(line, " # ")
+      if (n == 0) { print line; next }
+
+      cmd = substr(line, 1, n - 1)
+      com = substr(line, n + 3)
+
+      if (color == 1) {
+        printf "%s%s%s %s#%s %s%s%s\n", cmdc, cmd, reset, hashc, reset, comc, com, reset
+      } else {
+        printf "%s # %s\n", cmd, com
+      }
+    }
+  '
+}
+
+_cmdhelp_data() {
+  cat <<'CMDLIST'
 apt list --upgradable # List upgradable packages (Debian/Ubuntu)
 apt-cache policy <pkg> # Show candidate versions (Debian/Ubuntu)
 awk "{print $1}" file # Print first column (awk)
@@ -14,11 +66,11 @@ crontab -e # Edit current user's cron jobs
 crontab -l # List current user's cron jobs
 curl -fL --retry 5 --retry-delay 2 https://example.com/file # Retry transient failures
 curl -fsSL -H "Authorization: Bearer <token>" https://api.example.com # Add request header
-curl -fsSL https://example.com # Fetch URL (fail on error)
-curl -fsSL https://example.com | sh # Download and pipe to shell (risky; prefer inspecting first)
-curl -fsSL https://example.com -o /dev/null -w "%{http_code}\n" # Print HTTP status code only
 curl -fsSL -u user:pass https://example.com # Basic auth (prefer tokens)
 curl -fsSL -X POST -H "Content-Type: application/json" -d '{"k":"v"}' https://api.example.com # POST JSON
+curl -fsSL https://example.com -o /dev/null -w "%{http_code}\n" # Print HTTP status code only
+curl -fsSL https://example.com # Fetch URL (fail on error)
+curl -fsSL https://example.com | sh # Download and pipe to shell (risky; prefer inspecting first)
 curl -fsSLo file.tgz https://example.com/file.tgz # Download to a file (-o)
 curl -I https://example.com # Fetch HTTP headers only
 cut -d ":" -f 1 /etc/passwd # Extract first field by delimiter
@@ -26,10 +78,10 @@ date -Iseconds # ISO-8601 timestamp
 dd if=/dev/zero of=/tmp/1g.bin bs=1M count=1024 status=progress # Write a 1GiB file (disk throughput test)
 dd if=image.iso of=/dev/sdX bs=4M status=progress oflag=sync # Write ISO to disk (DANGER: overwrites /dev/sdX)
 df -h # Disk usage by filesystem
+dig -x 8.8.8.8 +short # Reverse DNS lookup
 dig @1.1.1.1 example.com +short # Query a specific resolver
 dig +short A example.com # Get A records only (short)
 dig example.com +short # DNS lookup (if installed)
-dig -x 8.8.8.8 +short # Reverse DNS lookup
 docker compose logs -f # Follow compose logs
 docker compose up -d # Start compose stack
 docker exec -it <container> sh # Shell into a container
@@ -57,9 +109,9 @@ gzip -c file > file.gz # Write gzip output to stdout
 gzip -d file.gz # Decompress gzip file
 gzip file # Compress file -> file.gz
 head -n 50 file # Show first 50 lines
+history -c # Clear history for current session
 history # Show command history (bash)
 history | tail -n 50 # Last 50 history entries
-history -c # Clear history for current session
 hostnamectl # Host info (systemd)
 htop # Better process viewer (if installed)
 id # User/group IDs
@@ -69,14 +121,14 @@ ip r # Show routing table
 journalctl -f # Follow journal logs (systemd)
 journalctl -u <service> -n 200 --no-pager # Service logs (systemd)
 journalctl -xe --no-pager # Recent errors (systemd)
-jq "." file.json # Pretty-print JSON (jq)
-jq ".items | length" file.json # #Linux count array items
 jq -c ".items[]" file.json # #Linux compact output (one JSON per line)
 jq -e ".ok == true" file.json # #Linux exit non-zero if filter is false/null
 jq -r ".items[] | .id" file.json # #Linux extract field from each array element
 jq -r ".items[] | select(.enabled==true) | .id" file.json # #Linux filter objects then print id
 jq -r ".key" file.json # #Linux extract a string raw (no quotes)
 jq -s "." *.json # #Linux slurp multiple JSON files into an array
+jq "." file.json # Pretty-print JSON (jq)
+jq ".items | length" file.json # #Linux count array items
 kill -KILL <pid> # Force stop a process
 kill -TERM <pid> # Gracefully stop a process
 less file # View file with pager
@@ -87,9 +139,9 @@ mkdir -p path/to/dir # Create directory tree
 mount # Show mounted filesystems
 mv -v src dest # Move/rename (verbose)
 mysql -h 127.0.0.1 -P 3306 -u root -p # Connect to MySQL on host/port
+mysql -u root -p -e "SHOW DATABASES;" # Run a one-off query and exit
 mysql -u root -p # Connect to MySQL (prompts for password)
 mysql -u root -p < appdb.sql # Restore a dump into MySQL
-mysql -u root -p -e "SHOW DATABASES;" # Run a one-off query and exit
 mysqldump -u root -p --all-databases > all.sql # Dump all databases (admin)
 mysqldump -u root -p --databases appdb > appdb.sql # Dump a database to a SQL file
 mysqldump -u root -p --single-transaction --quick --routines --triggers appdb > appdb.sql # Safer dump for InnoDB + include routines/triggers
@@ -101,22 +153,22 @@ netstat -natup | grep LISTEN | sort -k 7 # List listening ports and sort by prog
 nslookup example.com # DNS lookup (fallback)
 ping -c 4 1.1.1.1 # Test connectivity
 pkill -f "pattern" # Kill by process command line match
-ps aux # List processes
 ps aux --sort=-%cpu | head # Top CPU processes
 ps aux --sort=-%mem | head # Top memory processes
+ps aux # List processes
 ps awxf # Process tree with full command lines (ps)
 pwd # Print working directory
-python3 -m http.server 8000 # Quick local HTTP server (Python)
 python3 -m http.server <port> --bind 0.0.0.0 # Simple HTTP listener on all interfaces (Python)
+python3 -m http.server 8000 # Quick local HTTP server (Python)
 rg "PATTERN" . # Search text fast (ripgrep)
 rm -i file # Remove file (confirm)
 rm -rf dir # Remove directory tree (danger)
 rsync -avh --bwlimit=10m src/ dest/ # Throttle bandwidth (10 MB/s)
 rsync -avh --delete src/ dest/ # Mirror dest to match src (deletes extra files)
-rsync -avh -e "ssh -i ~/.ssh/id_ed25519" src/ user@host:/dest/ # rsync over SSH with specific key
 rsync -avh --exclude ".git/" --exclude "node_modules/" src/ dest/ # Exclude patterns
 rsync -avh --partial --inplace --progress bigfile user@host:/path/ # Resume large file transfers
 rsync -avh --progress src/ dest/ # Copy/sync efficiently (rsync)
+rsync -avh -e "ssh -i ~/.ssh/id_ed25519" src/ user@host:/dest/ # rsync over SSH with specific key
 rsync -avhn --delete src/ dest/ # Dry-run mirror (shows what would change)
 scp file user@host:/tmp/ # Copy file over SSH (scp)
 sed -n "1,120p" file # Print lines 1..120
@@ -137,6 +189,9 @@ ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519 -C "you@example.com" # Generat
 ssh-keygen -t ed25519-sk -O resident -O verify-required -f ~/.ssh/id_ed25519_sk -C "you@example.com" # Generate FIDO2 security-key SSH key (best practice if available)
 ssh-keygen -t rsa -b 4096 -a 100 -f ~/.ssh/id_rsa -C "you@example.com" # RSA fallback for legacy systems (prefer ed25519)
 stat file # Show file metadata
+sudo -E <command> # Run a command with preserved environment (be careful)
+sudo -l # Show sudo privileges
+sudo -u <user> <command> # Run as another user
 sudo !! # Re-run last command with sudo (bash history expansion)
 sudo apt autoremove -y # Remove unused deps (Debian/Ubuntu)
 sudo apt install -y <pkg> # Install package (Debian/Ubuntu)
@@ -145,20 +200,17 @@ sudo apt update # Update package lists (Debian/Ubuntu)
 sudo apt upgrade -y # Upgrade installed packages (Debian/Ubuntu)
 sudo dnf install -y <pkg> # Install package (RHEL/Fedora)
 sudo dnf update -y # Update packages (RHEL/Fedora)
-sudo -E <command> # Run command with preserved environment (be careful)
 sudo firewall-cmd --list-all # Show firewall rules (firewalld)
 sudo iptables -S # List iptables rules (legacy)
-sudo -l # Show sudo privileges
 sudo lsof -i :443 # Show what is using port 443
-sudo mount /dev/sdb1 /mnt/usb # Mount a block device
 sudo mount -o ro /dev/sdb1 /mnt/usb # Mount read-only
 sudo mount -t nfs server:/export /mnt/nfs # Mount NFS share
+sudo mount /dev/sdb1 /mnt/usb # Mount a block device
 sudo systemctl disable --now <service> # Disable and stop service
 sudo systemctl enable --now <service> # Enable and start service
 sudo systemctl restart <service> # Restart service (systemd)
 sudo systemctl status <service> # Service status (systemd)
 sudo tcpdump -i any -nn port 53 # Capture DNS traffic (tcpdump)
-sudo -u <user> <command> # Run as another user
 sudo ufw allow 22/tcp # Allow port (UFW)
 sudo ufw status verbose # Firewall status (UFW)
 sudo umount /mnt/path # Unmount filesystem
@@ -171,6 +223,7 @@ tail -n 50 file # Show last 50 lines
 tar -czf archive.tgz folder # Create tar.gz archive
 tar -xzf archive.tgz # Extract tar.gz archive
 telnet example.com 80 # Telnet to host:port (plain text; for testing)
+time -v <command> # Time a command with resource usage (if available)
 time curl -fsSL https://example.com >/dev/null # Time a command (shell keyword)
 timedatectl # Time/NTP status (systemd)
 top # Interactive process viewer
@@ -178,15 +231,17 @@ touch file # Create empty file / update mtime
 traceroute 1.1.1.1 # Trace network path (if installed)
 umask 027 # Default permissions for new files (safer)
 uname -a # Kernel/system info
-unzip archive.zip # Extract zip archive
 unzip archive.zip -d /tmp/extract # Extract zip to a directory
+unzip archive.zip # Extract zip archive
 unzip file.zip # Extract zip file
 uptime # Uptime and load
+wget --spider https://example.com # Check URL exists without downloading
 wget -O file.tgz https://example.com/file.tgz # Download to a file (wget)
 wget -qO- https://example.com # Fetch URL (wget)
-wget --spider https://example.com # Check URL exists without downloading
 while read -r line; do echo "$line"; done < file # Read a file line-by-line (bash)
 while true; do date; sleep 1; done # Infinite loop with 1s sleep (bash)
 whoami # Current user
-zip -r archive.zip folder/ # Create zip archive from a folder
 zip -r archive.zip folder/ -x "*.log" # Create zip excluding patterns
+zip -r archive.zip folder/ # Create zip archive from a folder
+CMDLIST
+}
