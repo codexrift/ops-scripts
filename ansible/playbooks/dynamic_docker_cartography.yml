@@ -1,0 +1,103 @@
+---
+- name: Dynamic Docker cartography
+  hosts: linux
+  gather_facts: false
+
+  vars:
+    cartography_dir: "{{ playbook_dir }}/../facts/dynamic_docker_cartography"
+    cartography_ts: "{{ now(utc=true, fmt='%Y%m%dT%H%M%SZ') }}"
+
+  tasks:
+    - name: Ensure local cartography folder exists
+      ansible.builtin.file:
+        path: "{{ cartography_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Check docker command
+      ansible.builtin.command: sh -lc 'command -v docker'
+      register: docker_cmd
+      changed_when: false
+      failed_when: false
+
+    - name: Gather container list
+      ansible.builtin.command: >-
+        sh -lc 'docker ps -a --format "{{ "{{" }}json .{{ "}}" }}"'
+      register: docker_ps
+      changed_when: false
+      failed_when: false
+      when: docker_cmd.rc == 0
+
+    - name: Parse container list
+      ansible.builtin.set_fact:
+        docker_containers: "{{ (docker_ps.stdout_lines | default([])) | map('from_json') | list }}"
+      when: docker_cmd.rc == 0 and docker_ps.rc == 0
+
+    - name: Build docker cartography object
+      ansible.builtin.set_fact:
+        docker_cartography:
+          timestamp_utc: "{{ cartography_ts }}"
+          inventory_hostname: "{{ inventory_hostname }}"
+          docker_available: "{{ docker_cmd.rc == 0 }}"
+          docker_accessible: "{{ docker_cmd.rc == 0 and (docker_ps.rc | default(1)) == 0 }}"
+          docker_command_path: "{{ docker_cmd.stdout | default('') }}"
+          daemon_error: "{{ docker_ps.stderr | default('') }}"
+          containers: "{{ docker_containers | default([]) }}"
+
+    - name: Write docker cartography JSON (latest)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/{{ inventory_hostname }}_latest.json"
+        content: "{{ docker_cartography | to_nice_json }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+
+    - name: Write docker cartography JSON (timestamped)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/{{ inventory_hostname }}_{{ cartography_ts }}.json"
+        content: "{{ docker_cartography | to_nice_json }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+
+    - name: Build merged Docker CSV (latest)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/inventory_docker_cartography_latest.csv"
+        mode: "0644"
+        content: |
+          timestamp_utc,inventory_hostname,docker_available,docker_accessible,container_id,container_name,image,command,status,running_for,ports,networks,daemon_error
+          {% for host in ansible_play_hosts_all %}
+          {% set dc = hostvars[host].docker_cartography | default({}) %}
+          {% set containers = dc.get('containers', []) %}
+          {% if containers | length == 0 %}
+          "{{ cartography_ts }}","{{ host }}","{{ dc.get('docker_available', false) }}","{{ dc.get('docker_accessible', false) }}","","","","","","","","","{{ dc.get('daemon_error', '') | replace('"', '""') }}"
+          {% else %}
+          {% for c in containers %}
+          "{{ cartography_ts }}","{{ host }}","{{ dc.get('docker_available', false) }}","{{ dc.get('docker_accessible', false) }}","{{ c.get('ID', '') | replace('"', '""') }}","{{ c.get('Names', '') | replace('"', '""') }}","{{ c.get('Image', '') | replace('"', '""') }}","{{ c.get('Command', '') | replace('"', '""') }}","{{ c.get('Status', '') | replace('"', '""') }}","{{ c.get('RunningFor', '') | replace('"', '""') }}","{{ c.get('Ports', '') | replace('"', '""') }}","{{ c.get('Networks', '') | replace('"', '""') }}","{{ dc.get('daemon_error', '') | replace('"', '""') }}"
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Build merged Docker CSV (timestamped)
+      ansible.builtin.command: >
+        cp -f
+        "{{ cartography_dir }}/inventory_docker_cartography_latest.csv"
+        "{{ cartography_dir }}/inventory_docker_cartography_{{ cartography_ts }}.csv"
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Show docker cartography summary
+      ansible.builtin.debug:
+        msg:
+          - "Docker cartography complete for {{ ansible_play_hosts_all | length }} host(s)"
+          - "Folder: {{ cartography_dir }}"
+          - "CSV latest: {{ cartography_dir }}/inventory_docker_cartography_latest.csv"
+          - "CSV snapshot: {{ cartography_dir }}/inventory_docker_cartography_{{ cartography_ts }}.csv"
+      run_once: true

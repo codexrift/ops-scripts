@@ -1,0 +1,7 @@
+---
+- name: Install Docker on Linux
+  hosts: linux
+  become: true
+
+  roles:
+    - geerlingguy.docker

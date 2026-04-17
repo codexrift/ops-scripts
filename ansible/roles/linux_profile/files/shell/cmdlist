@@ -1,56 +1,3 @@
-cmdhelp() {
-  local query use_color
-
-  query="$*"
-  use_color=0
-
-  if [[ -t 1 ]]; then
-    use_color=1
-    if command -v tput >/dev/null 2>&1; then
-      if [[ "$(tput colors 2>/dev/null || echo 0)" -lt 8 ]]; then
-        use_color=0
-      fi
-    fi
-  fi
-
-  if [[ -z "${query}" ]]; then
-    _cmdhelp_data | _cmdhelp_format "${use_color}"
-  else
-    _cmdhelp_data | grep -iF -- "${query}" | _cmdhelp_format "${use_color}"
-  fi
-}
-
-_cmdhelp_format() {
-  local use_color
-  use_color="${1:-0}"
-
-  awk -v color="${use_color}" '
-    BEGIN {
-      # Keep it subtle: command stays uncolored, comment is dimmed.
-      cmdc  = ""
-      hashc = "\033[2;90m" # dim dark gray
-      comc  = "\033[2;37m" # dim light gray
-      reset = "\033[0m"
-    }
-    {
-      line = $0
-      n = index(line, " # ")
-      if (n == 0) { print line; next }
-
-      cmd = substr(line, 1, n - 1)
-      com = substr(line, n + 3)
-
-      if (color == 1) {
-        printf "%s%s%s %s#%s %s%s%s\n", cmdc, cmd, reset, hashc, reset, comc, com, reset
-      } else {
-        printf "%s # %s\n", cmd, com
-      }
-    }
-  '
-}
-
-_cmdhelp_data() {
-  cat <<'CMDLIST'
 apt list --upgradable # List upgradable packages (Debian/Ubuntu)
 apt-cache policy <pkg> # Show candidate versions (Debian/Ubuntu)
 awk "{print $1}" file # Print first column (awk)
@@ -82,12 +29,33 @@ dig -x 8.8.8.8 +short # Reverse DNS lookup
 dig @1.1.1.1 example.com +short # Query a specific resolver
 dig +short A example.com # Get A records only (short)
 dig example.com +short # DNS lookup (if installed)
+docker compose down --remove-orphans # Stop compose stack and clean orphan containers
 docker compose logs -f # Follow compose logs
+docker compose ps # Show compose services and state
+docker compose up -d --pull always # Start/update compose stack in one command
 docker compose up -d # Start compose stack
+docker container prune -f # Remove all stopped containers
 docker exec -it <container> sh # Shell into a container
+docker image prune -a -f # Remove unused images (including dangling and unreferenced)
 docker images # List local images
 docker logs -f <container> # Follow container logs
 docker ps # List running containers
+docker stop $(docker ps -q) # Stop all running containers
+docker rm -f $(docker ps -aq) # Delete all containers (running + stopped)
+docker run --rm -it --name alpine-test alpine:latest sh # Ephemeral test container shell (--rm auto-cleans)
+docker run -d --name nginx -p 80:80 --restart unless-stopped nginx:alpine # Start Nginx in one line (http://localhost)
+docker run -d --name portainer -p 9443:9443 -p 9000:9000 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:latest # Start Portainer in one line
+docker run -d --name whoami -p 8081:80 --restart unless-stopped traefik/whoami:latest # Start whoami test service (http://localhost:8081)
+docker run -d --name prometheus -p 9090:9090 --restart unless-stopped prom/prometheus:latest # Start Prometheus (http://localhost:9090)
+docker run -d --name grafana -p 3000:3000 --restart unless-stopped grafana/grafana:latest # Start Grafana (http://localhost:3000)
+docker run -d --name loki -p 3100:3100 --restart unless-stopped grafana/loki:latest -config.file=/etc/loki/local-config.yaml # Start Loki (http://localhost:3100/ready)
+docker run -d --name zabbix-appliance -p 8082:80 -p 10051:10051 --restart unless-stopped zabbix/zabbix-appliance:latest # Start Zabbix appliance (http://localhost:8082)
+docker run -d --name jenkins -p 8083:8080 -p 50000:50000 --restart unless-stopped jenkins/jenkins:lts-jdk17 # Start Jenkins (http://localhost:8083)
+docker run -d --name openldap -p 389:389 -p 636:636 --restart unless-stopped -e LDAP_ORGANISATION="Example Inc" -e LDAP_DOMAIN="example.org" -e LDAP_ADMIN_PASSWORD="admin" osixia/openldap:latest # Start OpenLDAP (admin password: admin)
+docker run -d --name ollama -p 11434:11434 --restart unless-stopped ollama/ollama:latest # Start Ollama API server (http://localhost:11434)
+docker run -d --name open-webui --network host -e OLLAMA_BASE_URL=http://127.0.0.1:11434 --restart unless-stopped ghcr.io/open-webui/open-webui:main # Start Open WebUI connected to local Ollama (http://localhost:8080)
+docker system prune -a --volumes -f # TOTAL Docker cleanup/reset (containers, images, networks, volumes not in use)
+docker volume prune -f # Remove unused Docker volumes
 du -sh * # Disk usage per item (current dir)
 eval "$(ssh-agent -s)" # Start ssh-agent
 export HISTTIMEFORMAT="%F %T " # Add timestamps to history (bash)
@@ -243,5 +211,3 @@ while true; do date; sleep 1; done # Infinite loop with 1s sleep (bash)
 whoami # Current user
 zip -r archive.zip folder/ -x "*.log" # Create zip excluding patterns
 zip -r archive.zip folder/ # Create zip archive from a folder
-CMDLIST
-}

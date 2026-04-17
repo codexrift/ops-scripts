@@ -1,0 +1,80 @@
+---
+- name: Dynamic IT cartography
+  hosts: linux
+  gather_facts: false
+
+  vars:
+    cartography_dir: "{{ playbook_dir }}/../facts/dynamic_cartography"
+    cartography_ts: "{{ now(utc=true, fmt='%Y%m%dT%H%M%SZ') }}"
+
+  tasks:
+    - name: Ensure local cartography folder exists
+      ansible.builtin.file:
+        path: "{{ cartography_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Gather full facts
+      ansible.builtin.setup:
+
+    - name: Gather package facts for inventory counts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Gather service facts for inventory counts
+      ansible.builtin.service_facts:
+
+    - name: Write host facts JSON (latest)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/{{ inventory_hostname }}_latest.json"
+        content: "{{ ansible_facts | to_nice_json }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+
+    - name: Write host facts JSON (timestamped)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/{{ inventory_hostname }}_{{ cartography_ts }}.json"
+        content: "{{ ansible_facts | to_nice_json }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+
+    - name: Build merged CSV (latest)
+      ansible.builtin.copy:
+        dest: "{{ cartography_dir }}/inventory_cartography_latest.csv"
+        mode: "0644"
+        content: |
+          timestamp_utc,inventory_hostname,hostname,fqdn,os,kernel,architecture,virtualization,primary_ip,all_ipv4,primary_mac,default_gateway,dns_servers,cpu_vcpus,memory_mb,mount_points,filesystem_types,total_disk_gb,used_disk_gb,block_devices,installed_packages_count,running_services_count
+          {% for host in ansible_play_hosts_all %}
+          {% set f = hostvars[host].ansible_facts %}
+          {% set mounts = f.get('mounts', []) %}
+          {% set total_bytes = mounts | map(attribute='size_total') | list | sum(start=0) %}
+          {% set avail_bytes = mounts | map(attribute='size_available') | list | sum(start=0) %}
+          {% set used_bytes = (total_bytes | int) - (avail_bytes | int) %}
+          "{{ cartography_ts }}","{{ host }}","{{ f.get('hostname', '') | replace('"', '""') }}","{{ f.get('fqdn', '') | replace('"', '""') }}","{{ ((f.get('distribution', '')) ~ ' ' ~ (f.get('distribution_version', ''))) | trim | replace('"', '""') }}","{{ f.get('kernel', '') | replace('"', '""') }}","{{ f.get('architecture', '') | replace('"', '""') }}","{{ ((f.get('virtualization_role', '')) ~ ':' ~ (f.get('virtualization_type', ''))) | trim(':') | replace('"', '""') }}","{{ f.get('default_ipv4', {}).get('address', '') }}","{{ f.get('all_ipv4_addresses', []) | join('|') | replace('"', '""') }}","{{ f.get('default_ipv4', {}).get('macaddress', '') }}","{{ f.get('default_ipv4', {}).get('gateway', '') }}","{{ f.get('dns', {}).get('nameservers', []) | join('|') | replace('"', '""') }}","{{ f.get('processor_vcpus', f.get('processor_nproc', '')) }}","{{ f.get('memory_mb', {}).get('real', {}).get('total', '') }}","{{ mounts | map(attribute='mount') | list | join('|') | replace('"', '""') }}","{{ mounts | map(attribute='fstype') | list | unique | join('|') | replace('"', '""') }}","{{ ((total_bytes / 1073741824) | round(2)) }}","{{ ((used_bytes / 1073741824) | round(2)) }}","{{ f.get('devices', {}).keys() | list | join('|') | replace('"', '""') }}","{{ f.get('packages', {}) | length }}","{{ f.get('services', {}) | dict2items | selectattr('value.state', 'equalto', 'running') | list | length }}"
+          {% endfor %}
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Build merged CSV (timestamped)
+      ansible.builtin.command: >
+        cp -f
+        "{{ cartography_dir }}/inventory_cartography_latest.csv"
+        "{{ cartography_dir }}/inventory_cartography_{{ cartography_ts }}.csv"
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Show cartography summary
+      ansible.builtin.debug:
+        msg:
+          - "Cartography complete for {{ ansible_play_hosts_all | length }} host(s)"
+          - "Folder: {{ cartography_dir }}"
+          - "CSV latest: {{ cartography_dir }}/inventory_cartography_latest.csv"
+          - "CSV snapshot: {{ cartography_dir }}/inventory_cartography_{{ cartography_ts }}.csv"
+      run_once: true

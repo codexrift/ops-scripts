@@ -1,0 +1,19 @@
+---
+- name: Ensure shell dir exists
+  ansible.builtin.file:
+    path: ~/.config/shell
+    state: directory
+    mode: "0700"
+
+- name: Copy shell snippets
+  ansible.builtin.copy:
+    src: "shell/"
+    dest: ~/.config/shell/
+    mode: preserve
+
+- name: Ensure bashrc sources shell snippets
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    create: true
+    insertafter: EOF
+    line: 'for f in "$HOME/.config/shell/"*.sh; do [ -r "$f" ] && . "$f"; done'

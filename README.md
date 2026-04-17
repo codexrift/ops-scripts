@@ -1,141 +1,100 @@
-﻿# ops-scripts
+# ops-scripts
 
-Personal utilities for Windows and Linux, plus small "command help" profiles (`cmdhelp`) for Bash and PowerShell.
+Personal admin/ops scripts for Linux and Windows, with an Ansible-first workflow for Linux provisioning and cartography.
 
-This repo is meant for local administration and troubleshooting, not as a packaged application.
+## Ansible
 
-## Linux: Bash `cmdhelp`
+Location: `ansible/`
 
-Files:
+### Runner
 
-- `linux/profile/.bashrc`: defines `cmdhelp` (searches `.cmdlist` and colorizes output)
-- `linux/profile/.cmdlist`: command snippets in `command # comment` format
-- `linux/profile/install-profile.sh`: installer (copies into `~/.bashrc.custom/` and updates `~/.bashrc`)
-
-Install (Linux/WSL):
-
-```bash
-bash linux/profile/install-profile.sh
-# or (to reload immediately in the current shell)
-source linux/profile/install-profile.sh
-```
-
-Disable:
-
-```bash
-bash linux/profile/install-profile.sh /disable
-```
-
-Use:
-
-```bash
-cmdhelp ssh
-cmdhelp port
-```
-
-## Linux: Ansible deploy
-
-Playbooks live in `ansible/playbooks/`. To deploy the Linux profile snippets:
+Use the interactive runner:
 
 ```bash
 cd ansible
-./run-ansible-playbooks.sh playbooks/deploy_profile.yml
+./run-ansible-playbooks.sh
 ```
 
-This playbook copies `linux/profile/.custom/` into `~/.bashrc.custom/` and ensures a single line exists at the end of `~/.bashrc` to source `~/.config/shell/*.sh`.
+It shows a menu of playbooks in `ansible/playbooks/`, runs the selected one, then exits.
 
-## Windows: PowerShell `cmdhelp`
+### Inventory
 
-Files:
+Default inventory file:
 
-- `windows/powershell/profile/cmdhelp.ps1`: implements `cmdhelp` for PowerShell
-- `windows/powershell/profile/.cmdlist`: command snippets in `command # comment` format
-- `windows/powershell/profile/install-profile.ps1`: installer (copies to `profile.custom` and updates `$PROFILE`)
-- `windows/powershell/profile/install-profile.bat`: convenience wrapper for the installer
+`ansible/inventory/hosts.ini`
 
-Install (PowerShell):
+### Playbooks
 
-```powershell
-.\windows\powershell\profile\install-profile.ps1
-# or
-.\windows\powershell\profile\install-profile.bat
+- `playbooks/ping.yml`: connectivity check (`ansible.builtin.ping`)
+- `playbooks/setup_linux_baseline.yml`: base packages + unattended security updates
+- `playbooks/setup_linux_shell.yml`: deploy shell profile (`linux_profile` role) + Starship setup
+- `playbooks/install_docker.yml`: Docker installation via `geerlingguy.docker`
+- `playbooks/gather_linux_facts.yml`: gather full host facts to JSON files
+- `playbooks/dynamic_cartography.yml`: host-level cartography JSON + merged CSV snapshots
+- `playbooks/dynamic_docker_cartography.yml`: Docker container cartography JSON + merged CSV snapshots
+
+### Roles
+
+- `roles/linux_profile`: deploys shell snippets and bash init line
+- `roles/geerlingguy.docker`: Galaxy role dependency (installed via `requirements.yml`)
+
+Install Galaxy dependencies:
+
+```bash
+cd ansible
+ansible-galaxy role install -r requirements.yml -p roles
 ```
 
-Disable:
+### Facts output
 
-```powershell
-.\windows\powershell\profile\install-profile.ps1 /disable
-```
+Generated outputs are written under:
 
-Use:
+- `ansible/facts/`
+- `ansible/facts/dynamic_cartography/`
+- `ansible/facts/dynamic_docker_cartography/`
 
-```powershell
-cmdhelp ssh
-```
+These are generated artifacts and are ignored by git.
 
-Note: `install-profile.ps1` may set the CurrentUser execution policy to `RemoteSigned` (unless blocked by Group Policy).
+## Linux shell profile
 
-## Windows: Command Prompt `cmdhelp`
+Source files:
 
-Files:
+- `ansible/roles/linux_profile/files/shell/cmdhelp.sh`
+- `ansible/roles/linux_profile/files/shell/cmdlist`
+- `ansible/roles/linux_profile/files/shell/history.sh`
 
-- `windows/cmd/profile/cmdhelp.bat`: implements `cmdhelp` for `cmd.exe`
-- `windows/cmd/profile/.cmdlist`: command snippets in `command # comment` format
-- `windows/cmd/profile/install-profile.bat`: installer (copies to `%USERPROFILE%\.cmd.profile.custom` and enables `cmd.exe` AutoRun; pass `/disable` to remove)
+After running `setup_linux_shell.yml`, snippets are deployed to:
 
-Install:
+`~/.config/shell/`
 
-```powershell
-.\windows\cmd\profile\install-profile.bat
-```
+and sourced from `~/.bashrc`.
 
-Disable:
+## Windows profiles
 
-```powershell
-.\windows\cmd\profile\install-profile.bat /disable
-```
+PowerShell profile tooling:
 
-Use:
+- `windows/powershell/profile/cmdhelp.ps1`
+- `windows/powershell/profile/.cmdlist`
+- `windows/powershell/profile/install-profile.ps1`
+- `windows/powershell/profile/install-profile.bat`
 
-```bat
-call "%USERPROFILE%\.cmd.profile.custom\profile.bat"
-cmdhelp ssh
-```
+Command Prompt profile tooling:
 
-## Windows: Batch utilities
+- `windows/cmd/profile/cmdhelp.bat`
+- `windows/cmd/profile/.cmdlist`
+- `windows/cmd/profile/install-profile.bat`
+- `windows/cmd/profile/profile.bat`
 
-Located in `windows/cmd/`:
+Additional Windows batch utilities:
 
-- `windows/cmd/system_diagnostics.bat`: collect a Windows diagnostics snapshot (can include sensitive info)
-- `windows/cmd/list_files.bat`: recursive file listing across drive letters
-- `windows/cmd/F15.bat`: local helper (repo-specific)
-
-## Requirements
-
-- Windows: Command Prompt / PowerShell
-- Linux/WSL: Bash
-
-## Repository Layout
-
-```text
-ops-scripts/
-|-- docs/
-|-- linux/
-|   `-- profile/
-|-- windows/
-    |-- cmd/
-    `-- powershell/
-        `-- profile/
-```
+- `windows/cmd/system_diagnostics.bat`
+- `windows/cmd/list_files.bat`
+- `windows/cmd/F15.bat`
 
 ## Safety
 
-These scripts operate on the local machine and may expose system details or trigger changes.
+These scripts/playbooks can change system configuration.
 
-- Review each script before running it.
-- Avoid sharing generated diagnostic reports without checking for sensitive information.
-
-## License
-
-No license file is currently present in this repository. Add one if you want to make reuse terms explicit.
-
+- Review playbooks/scripts before running them.
+- Validate inventory targets before execution.
+- Be careful with destructive commands in `cmdlist` (for example `rm -rf`, `docker system prune -a --volumes -f`).

@@ -1,0 +1,39 @@
+---
+- name: Setup Linux shell
+  hosts: linux
+  gather_facts: false
+
+  roles:
+    - linux_profile
+
+  tasks:
+    - name: Check curl
+      ansible.builtin.command: sh -lc 'command -v curl'
+      register: curl_check
+      changed_when: false
+      failed_when: false
+
+    - name: Require curl
+      ansible.builtin.fail:
+        msg: "curl is required. Run playbook setup_linux_baseline.yml first."
+      when: curl_check.rc != 0
+
+    - name: Check starship
+      ansible.builtin.command: sh -lc 'command -v starship'
+      register: starship_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install starship
+      ansible.builtin.shell: |
+        curl -fsSL https://starship.rs/install.sh | sh -s -- -y
+      args:
+        executable: /bin/sh
+      when: starship_check.rc != 0
+
+    - name: Ensure bashrc initializes starship
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        create: true
+        insertafter: EOF
+        line: 'eval "$(starship init bash)"'
