@@ -11,6 +11,23 @@
     dest: ~/.config/shell/
     mode: preserve
 
+- name: Remove stale shell files
+  vars:
+    managed_shell_files: "{{ lookup('ansible.builtin.fileglob', role_path ~ '/files/shell/*', wantlist=True) | map('basename') | list }}"
+  block:
+    - name: Find existing shell files
+      ansible.builtin.find:
+        paths: ~/.config/shell
+        file_type: file
+      register: shell_existing
+
+    - name: Delete files not in repo
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ shell_existing.files }}"
+      when: (item.path | basename) not in managed_shell_files
+
 - name: Ensure bashrc sources shell snippets
   ansible.builtin.lineinfile:
     path: ~/.bashrc

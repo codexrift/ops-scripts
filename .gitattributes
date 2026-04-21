@@ -1,0 +1,2 @@
+# Keep Unix scripts compatible with WSL/Linux by forcing LF endings.
+*.sh text eol=lf
