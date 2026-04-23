@@ -37,3 +37,11 @@
         create: true
         insertafter: EOF
         line: 'eval "$(starship init bash)"'
+
+    - name: Reload bashrc (non-persistent)
+      ansible.builtin.shell: bash -lc 'source ~/.bashrc'
+      changed_when: false
+
+    - name: "Reminder: reload your current shell"
+      ansible.builtin.debug:
+        msg: 'To apply changes in your current terminal, run: source ~/.bashrc'

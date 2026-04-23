@@ -1,3 +1,4 @@
+
 apt list --upgradable # List upgradable packages (Debian/Ubuntu)
 apt-cache policy <pkg> # Show candidate versions (Debian/Ubuntu)
 awk "{print $1}" file # Print first column (awk)
@@ -12,8 +13,17 @@ cp -av src dest # Copy (archive mode, verbose)
 crontab -e # Edit current user's cron jobs
 crontab -l # List current user's cron jobs
 curl -fL --retry 5 --retry-delay 2 https://example.com/file # Retry transient failures
+curl -fsSL -H "Authorization: Bearer <token>" -H "Accept: application/vnd.github.raw" https://api.github.com/repos/<org>/<repo>/contents/<path> # GitHub API: fetch raw file from repo
+curl -fsSL -H "Authorization: Bearer <token>" "https://api.github.com/user/repos?per_page=100&sort=updated" # GitHub API: list your repos
 curl -fsSL -H "Authorization: Bearer <token>" https://api.example.com # Add request header
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/rate_limit # GitHub API: check rate limits
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/repos/<org>/<repo>/releases/latest # GitHub API: latest release
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/user # GitHub API: show authenticated user
+curl -fsSL -H "Authorization: Bearer <token>" https://ghe.example.com/api/v3/rate_limit # GHE API: check rate limits
+curl -fsSL -H "Authorization: Bearer <token>" https://ghe.example.com/api/v3/user # GHE API: show authenticated user
 curl -fsSL -u user:pass https://example.com # Basic auth (prefer tokens)
+curl -fsSL -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"query":"{ viewer { login } }"}' https://api.github.com/graphql # GitHub GraphQL: whoami
+curl -fsSL -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"query":"{ viewer { login } }"}' https://ghe.example.com/api/graphql # GHE GraphQL: whoami
 curl -fsSL -X POST -H "Content-Type: application/json" -d '{"k":"v"}' https://api.example.com # POST JSON
 curl -fsSL https://example.com -o /dev/null -w "%{http_code}\n" # Print HTTP status code only
 curl -fsSL https://example.com # Fetch URL (fail on error)
@@ -40,20 +50,20 @@ docker image prune -a -f # Remove unused images (including dangling and unrefere
 docker images # List local images
 docker logs -f <container> # Follow container logs
 docker ps # List running containers
-docker stop $(docker ps -q) # Stop all running containers
 docker rm -f $(docker ps -aq) # Delete all containers (running + stopped)
 docker run --rm -it --name alpine-test alpine:latest sh # Ephemeral test container shell (--rm auto-cleans)
-docker run -d --name nginx -p 80:80 --restart unless-stopped nginx:alpine # Start Nginx in one line (http://localhost)
-docker run -d --name portainer -p 9443:9443 -p 9000:9000 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:latest # Start Portainer in one line
-docker run -d --name whoami -p 8081:80 --restart unless-stopped traefik/whoami:latest # Start whoami test service (http://localhost:8081)
-docker run -d --name prometheus -p 9090:9090 --restart unless-stopped prom/prometheus:latest # Start Prometheus (http://localhost:9090)
 docker run -d --name grafana -p 3000:3000 --restart unless-stopped grafana/grafana:latest # Start Grafana (http://localhost:3000)
-docker run -d --name loki -p 3100:3100 --restart unless-stopped grafana/loki:latest -config.file=/etc/loki/local-config.yaml # Start Loki (http://localhost:3100/ready)
-docker run -d --name zabbix-appliance -p 8082:80 -p 10051:10051 --restart unless-stopped zabbix/zabbix-appliance:latest # Start Zabbix appliance (http://localhost:8082)
 docker run -d --name jenkins -p 8083:8080 -p 50000:50000 --restart unless-stopped jenkins/jenkins:lts-jdk17 # Start Jenkins (http://localhost:8083)
-docker run -d --name openldap -p 389:389 -p 636:636 --restart unless-stopped -e LDAP_ORGANISATION="Example Inc" -e LDAP_DOMAIN="example.org" -e LDAP_ADMIN_PASSWORD="admin" osixia/openldap:latest # Start OpenLDAP (admin password: admin)
+docker run -d --name loki -p 3100:3100 --restart unless-stopped grafana/loki:latest -config.file=/etc/loki/local-config.yaml # Start Loki (http://localhost:3100/ready)
+docker run -d --name nginx -p 80:80 --restart unless-stopped nginx:alpine # Start Nginx in one line (http://localhost)
 docker run -d --name ollama -p 11434:11434 --restart unless-stopped ollama/ollama:latest # Start Ollama API server (http://localhost:11434)
 docker run -d --name open-webui --network host -e OLLAMA_BASE_URL=http://127.0.0.1:11434 --restart unless-stopped ghcr.io/open-webui/open-webui:main # Start Open WebUI connected to local Ollama (http://localhost:8080)
+docker run -d --name openldap -p 389:389 -p 636:636 --restart unless-stopped -e LDAP_ORGANISATION="Example Inc" -e LDAP_DOMAIN="example.org" -e LDAP_ADMIN_PASSWORD="admin" osixia/openldap:latest # Start OpenLDAP (admin password: admin)
+docker run -d --name portainer -p 9443:9443 -p 9000:9000 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:latest # Start Portainer in one line
+docker run -d --name prometheus -p 9090:9090 --restart unless-stopped prom/prometheus:latest # Start Prometheus (http://localhost:9090)
+docker run -d --name whoami -p 8081:80 --restart unless-stopped traefik/whoami:latest # Start whoami test service (http://localhost:8081)
+docker run -d --name zabbix-appliance -p 8082:80 -p 10051:10051 --restart unless-stopped zabbix/zabbix-appliance:latest # Start Zabbix appliance (http://localhost:8082)
+docker stop $(docker ps -q) # Stop all running containers
 docker system prune -a --volumes -f # TOTAL Docker cleanup/reset (containers, images, networks, volumes not in use)
 docker volume prune -f # Remove unused Docker volumes
 du -sh * # Disk usage per item (current dir)
@@ -99,6 +109,57 @@ jq "." file.json # Pretty-print JSON (jq)
 jq ".items | length" file.json # #Linux count array items
 kill -KILL <pid> # Force stop a process
 kill -TERM <pid> # Gracefully stop a process
+kubectl annotate ns <ns> note="..." # Add an annotation
+kubectl api-resources # List available resource kinds
+kubectl apply -f file.yml # Apply manifest
+kubectl apply -k ./dir # Apply kustomize directory
+kubectl auth can-i get pods -n <ns> # Check RBAC permissions
+kubectl cluster-info # Cluster endpoints and DNS
+kubectl config current-context # Show current context
+kubectl config get-contexts # List kubeconfig contexts
+kubectl config set-context --current --namespace=<ns> # Set default namespace for current context
+kubectl config use-context <ctx> # Switch context
+kubectl config view --minify # Show active context/cluster/user
+kubectl create configmap <name> -n <ns> --from-file=./dir/ # ConfigMap from files
+kubectl create namespace <ns> # Create namespace
+kubectl create secret generic <name> -n <ns> --from-literal=key=value # Secret from literal (careful with shell history)
+kubectl delete -f file.yml # Delete resources defined in a manifest (careful)
+kubectl delete pod -n <ns> <pod> # Restart a pod (controller will recreate it)
+kubectl describe node <node> # Node details (capacity, allocatable, conditions)
+kubectl describe pod <pod> -n <ns> # Pod details (includes events)
+kubectl diff -f file.yml # Show changes before apply
+kubectl exec -it -n <ns> <pod> -- sh # Shell into a container (if available)
+kubectl exec -it -n <ns> <pod> -c <container> -- sh # Shell into a specific container
+kubectl explain deploy.spec.template.spec # Explain fields for a kind
+kubectl get all -n <ns> # Quick overview of common resources in a namespace
+kubectl get deploy,rs,po -n <ns> # Deployments, ReplicaSets, Pods
+kubectl get events -n <ns> --sort-by=.lastTimestamp # Recent events (sorted)
+kubectl get hpa -n <ns> # HorizontalPodAutoscaler status
+kubectl get ingress -A # Ingresses across namespaces
+kubectl get ns # List namespaces
+kubectl get pod <pod> -n <ns> -o jsonpath='{.spec.nodeName}{"\n"}' # Extract a field (jsonpath)
+kubectl get pod <pod> -n <ns> -o yaml # Dump resource YAML
+kubectl get pods -A # List pods across all namespaces
+kubectl get pods -n <ns> --field-selector=status.phase!=Running # Filter by field selector
+kubectl get pods -n <ns> -l app=<label> # Filter by label selector
+kubectl get pods -n <ns> -o wide # Pods with node/IP details
+kubectl get secret <name> -n <ns> -o jsonpath='{.data.key}' | base64 -d; echo # Decode one secret key
+kubectl get svc,ep -n <ns> # Services and endpoints
+kubectl label ns <ns> owner=<team> # Add a label
+kubectl logs -n <ns> -l app=<label> --tail=200 # Logs by label selector
+kubectl logs -n <ns> <pod> --since=1h # Logs in the last hour
+kubectl logs -n <ns> <pod> -c <container> # Pod logs (specific container)
+kubectl logs -n <ns> <pod> # Pod logs (single container)
+kubectl port-forward -n <ns> pod/<pod> 8080:8080 # Port-forward a Pod
+kubectl port-forward -n <ns> svc/<svc> 8080:80 # Port-forward a Service
+kubectl rollout history -n <ns> deploy/<deploy> # Rollout history
+kubectl rollout status -n <ns> deploy/<deploy> # Watch a rollout
+kubectl rollout undo -n <ns> deploy/<deploy> # Roll back last rollout
+kubectl scale -n <ns> deploy/<deploy> --replicas=3 # Scale deployment
+kubectl set image -n <ns> deploy/<deploy> <container>=<image>:<tag> # Update image
+kubectl top nodes # Node CPU/memory (metrics-server required)
+kubectl top pods -n <ns> # Pod CPU/memory (metrics-server required)
+kubectl version --client # Show kubectl client version
 less file # View file with pager
 ln -s target linkname # Create symlink
 ls -lah # List files (human, all, long)
