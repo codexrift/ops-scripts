@@ -30,3 +30,48 @@ This note documents a common way to complete Windows 11 out-of-box experience (O
 
 - **Shift+F10 does nothing:** try `Shift+Fn+F10` (laptops) or use an external keyboard.
 - **No offline/limited setup option after reboot:** you may not be at the right OOBE stage, or the installer flow has changed; rerun `OOBE\BYPASSNRO` and check again after the reboot.
+
+## Alternative methods (force offline path)
+
+If `OOBE\BYPASSNRO` is unavailable or the UI still insists on network/sign-in, you can often force the “offline/limited setup” path by temporarily removing network connectivity during OOBE.
+
+### Physically disconnect
+
+- Unplug the Ethernet cable.
+- Turn off Wi‑Fi on the device (hardware switch / airplane mode), or power off the access point temporarily.
+
+### Disable network adapters from OOBE (Shift+F10)
+
+Open Command Prompt (`Shift+F10`) and run one of the following.
+
+List interfaces:
+
+```bat
+netsh interface show interface
+```
+
+Disable Ethernet:
+
+```bat
+netsh interface set interface name="Ethernet" admin=disable
+```
+
+Disable Wi‑Fi (name is often `Wi-Fi`):
+
+```bat
+netsh interface set interface name="Wi-Fi" admin=disable
+```
+
+Drop DHCP lease (sometimes enough if you’re connected via Ethernet):
+
+```bat
+ipconfig /release
+```
+
+After you complete account creation, re-enable the adapter(s):
+
+```bat
+netsh interface set interface name="Ethernet" admin=enable
+netsh interface set interface name="Wi-Fi" admin=enable
+ipconfig /renew
+```
