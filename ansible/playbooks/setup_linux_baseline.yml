@@ -29,6 +29,45 @@
           - zip
         state: present
 
+    - name: Detect machine architecture
+      ansible.builtin.command: uname -m
+      register: uname_m
+      changed_when: false
+
+    - name: Compute kubectl download architecture
+      ansible.builtin.set_fact:
+        kubectl_arch: >-
+          {{
+            'amd64' if uname_m.stdout in ['x86_64', 'amd64']
+            else 'arm64' if uname_m.stdout in ['aarch64', 'arm64']
+            else uname_m.stdout
+          }}
+
+    - name: Fetch latest stable kubectl version
+      ansible.builtin.uri:
+        url: https://dl.k8s.io/release/stable.txt
+        return_content: true
+      register: kubectl_stable
+      changed_when: false
+
+    - name: Set kubectl version fact
+      ansible.builtin.set_fact:
+        kubectl_version: "{{ kubectl_stable.content | trim }}"
+
+    - name: Fetch kubectl sha256
+      ansible.builtin.uri:
+        url: "https://dl.k8s.io/{{ kubectl_version }}/bin/linux/{{ kubectl_arch }}/kubectl.sha256"
+        return_content: true
+      register: kubectl_sha
+      changed_when: false
+
+    - name: Install kubectl
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/{{ kubectl_version }}/bin/linux/{{ kubectl_arch }}/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+        checksum: "sha256:{{ kubectl_sha.content | trim }}"
+
     - name: Enable periodic APT update + unattended upgrade
       ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades
