@@ -68,6 +68,98 @@
         mode: "0755"
         checksum: "sha256:{{ kubectl_sha.content | trim }}"
 
+    - name: Compute kind download architecture
+      ansible.builtin.set_fact:
+        kind_arch: >-
+          {{
+            'amd64' if uname_m.stdout in ['x86_64', 'amd64']
+            else 'arm64' if uname_m.stdout in ['aarch64', 'arm64']
+            else uname_m.stdout
+          }}
+
+    - name: Fetch latest kind release metadata (GitHub API)
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/kubernetes-sigs/kind/releases/latest
+        return_content: true
+      register: kind_release
+      changed_when: false
+
+    - name: Set kind version fact
+      ansible.builtin.set_fact:
+        kind_version: "{{ (kind_release.content | from_json).tag_name }}"
+
+    - name: Fetch kind sha256sum
+      ansible.builtin.uri:
+        url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ kind_arch }}.sha256sum"
+        return_content: true
+      register: kind_sha
+      changed_when: false
+
+    - name: Install kind
+      ansible.builtin.get_url:
+        url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ kind_arch }}"
+        dest: /usr/local/bin/kind
+        mode: "0755"
+        checksum: "sha256:{{ (kind_sha.content | trim).split()[0] }}"
+
+    - name: Compute helm download architecture
+      ansible.builtin.set_fact:
+        helm_arch: >-
+          {{
+            'amd64' if uname_m.stdout in ['x86_64', 'amd64']
+            else 'arm64' if uname_m.stdout in ['aarch64', 'arm64']
+            else uname_m.stdout
+          }}
+
+    - name: Fetch latest helm release metadata (GitHub API)
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/helm/helm/releases/latest
+        return_content: true
+      register: helm_release
+      changed_when: false
+
+    - name: Set helm version fact
+      ansible.builtin.set_fact:
+        helm_version: "{{ (helm_release.content | from_json).tag_name }}"
+
+    - name: Create temp dir for helm install
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: helm-
+      register: helm_tmp
+
+    - name: Fetch helm sha256sum (tarball)
+      ansible.builtin.uri:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ helm_arch }}.tar.gz.sha256sum"
+        return_content: true
+      register: helm_sha
+      changed_when: false
+
+    - name: Download helm tarball
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ helm_arch }}.tar.gz"
+        dest: "{{ helm_tmp.path }}/helm.tar.gz"
+        mode: "0644"
+        checksum: "sha256:{{ (helm_sha.content | trim).split()[0] }}"
+
+    - name: Extract helm tarball
+      ansible.builtin.unarchive:
+        src: "{{ helm_tmp.path }}/helm.tar.gz"
+        dest: "{{ helm_tmp.path }}"
+        remote_src: true
+
+    - name: Install helm
+      ansible.builtin.copy:
+        src: "{{ helm_tmp.path }}/linux-{{ helm_arch }}/helm"
+        dest: /usr/local/bin/helm
+        mode: "0755"
+        remote_src: true
+
+    - name: Clean helm temp dir
+      ansible.builtin.file:
+        path: "{{ helm_tmp.path }}"
+        state: absent
+
     - name: Enable periodic APT update + unattended upgrade
       ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades

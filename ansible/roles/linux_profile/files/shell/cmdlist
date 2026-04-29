@@ -49,6 +49,7 @@ docker exec -it <container> sh # Shell into a container
 docker image prune -a -f # Remove unused images (including dangling and unreferenced)
 docker images # List local images
 docker logs -f <container> # Follow container logs
+docker ps --filter "name=kind" # List kind node containers (Docker view)
 docker ps # List running containers
 docker rm -f $(docker ps -aq) # Delete all containers (running + stopped)
 docker run --rm -it --name alpine-test alpine:latest sh # Ephemeral test container shell (--rm auto-cleans)
@@ -109,6 +110,24 @@ jq "." file.json # Pretty-print JSON (jq)
 jq ".items | length" file.json # #Linux count array items
 kill -KILL <pid> # Force stop a process
 kill -TERM <pid> # Gracefully stop a process
+kind create cluster --name <cluster> --config kind-config.yaml # Create cluster from a config file (multi-node, port mappings)
+kind create cluster --name <cluster> --image kindest/node:<tag> # Create cluster with a specific node image/version
+kind create cluster --name <cluster> # Create a kind cluster (default 1-node)
+kind delete cluster --name <cluster> # Delete a kind cluster
+kind export kubeconfig --name <cluster> # Ensure kubeconfig context exists/updated for the cluster
+kind export logs --name <cluster> ./kind-logs # Export cluster logs for troubleshooting
+kind get clusters # List kind clusters
+kind get kubeconfig --name <cluster> # Print kubeconfig for a kind cluster (creates/exports kubectl config)
+kind get kubeconfig --name <cluster> > kubeconfig.kind.<cluster>.yaml # Export kind kubeconfig to file
+kind load docker-image <image:tag> --name <cluster> --nodes <node> # Load image into a specific node
+kind load docker-image <image:tag> --name <cluster> # Load a locally-built image into the cluster
+kind version # Show kind version
+KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten # Merge kubeconfigs (print merged config)
+KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten > ~/.kube/config.merged # Merge kubeconfigs into a new file
+kubectl --kubeconfig <file> config get-contexts # Import/use another kubeconfig file (no merge)
+kubectl --kubeconfig ~/.kube/config.merged config get-contexts # Validate merged kubeconfig contexts
+cp -a ~/.kube/config ~/.kube/config.bak && KUBECONFIG=~/.kube/config:./new.yaml kubectl config view --flatten > ~/.kube/config # Append/merge a new kubeconfig yaml into your main kubeconfig (with backup)
+KUBECONFIG=./a.yaml:./b.yaml kubectl config view --flatten > kubeconfig.merged.yaml # Create a kubeconfig file by merging two kubeconfig yamls
 kubectl annotate ns <ns> note="..." # Add an annotation
 kubectl api-resources # List available resource kinds
 kubectl apply -f file.yml # Apply manifest
@@ -118,7 +137,10 @@ kubectl cluster-info # Cluster endpoints and DNS
 kubectl config current-context # Show current context
 kubectl config get-contexts # List kubeconfig contexts
 kubectl config set-context --current --namespace=<ns> # Set default namespace for current context
+kubectl config set-cluster <cluster-name> --insecure-skip-tls-verify=true # Disable TLS cert verification for a cluster (DANGER: insecure; prefer setting CA/cert)
 kubectl config use-context <ctx> # Switch context
+kubectl config view --minify --raw # Export current context as kubeconfig (print to stdout)
+kubectl config view --minify --raw > kubeconfig.<ctx>.yaml # Export current context kubeconfig to file
 kubectl config view --minify # Show active context/cluster/user
 kubectl create configmap <name> -n <ns> --from-file=./dir/ # ConfigMap from files
 kubectl create namespace <ns> # Create namespace

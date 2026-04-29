@@ -1,4 +1,4 @@
-cmdhelp() {
+cmd_help() {
   local use_color
   use_color=0
 
@@ -12,19 +12,19 @@ cmdhelp() {
   fi
 
   if [[ $# -eq 0 ]]; then
-    _cmdhelp_data | _cmdhelp_format "${use_color}"
+    _cmd_help_data | _cmd_help_format "${use_color}"
   else
     local output term
-    output="$(_cmdhelp_data)"
+    output="$(_cmd_help_data)"
     for term in "$@"; do
       output="$(printf '%s\n' "${output}" | grep -iF -- "${term}" || true)"
       [[ -z "${output}" ]] && break
     done
-    printf '%s\n' "${output}" | sed '/^$/d' | _cmdhelp_format "${use_color}"
+    printf '%s\n' "${output}" | sed '/^$/d' | _cmd_help_format "${use_color}"
   fi
 }
 
-_cmdhelp_format() {
+_cmd_help_format() {
   local use_color
   use_color="${1:-0}"
 
@@ -53,6 +53,6 @@ _cmdhelp_format() {
   '
 }
 
-_cmdhelp_data() {
+_cmd_help_data() {
   cat "$(dirname "${BASH_SOURCE[0]}")/cmdlist"
 }
