@@ -1,5 +1,9 @@
-
+apt autoremove -y # Remove unused deps (Debian/Ubuntu)
+apt install -y <pkg> # Install package (Debian/Ubuntu)
 apt list --upgradable # List upgradable packages (Debian/Ubuntu)
+apt remove -y <pkg> # Remove package (Debian/Ubuntu)
+apt update # Update package lists (Debian/Ubuntu)
+apt upgrade -y # Upgrade installed packages (Debian/Ubuntu)
 apt-cache policy <pkg> # Show candidate versions (Debian/Ubuntu)
 awk "{print $1}" file # Print first column (awk)
 blkid # Show block device UUIDs/types
@@ -9,6 +13,7 @@ cd - # Switch to previous directory
 chmod +x script.sh # Make file executable
 chmod 640 file # Set permissions (rw-r-----)
 chown user:group file # Change owner/group
+cp -a ~/.kube/config ~/.kube/config.bak && KUBECONFIG=~/.kube/config:./new.yaml kubectl config view --flatten > ~/.kube/config # Append/merge a new kubeconfig yaml into your main kubeconfig (with backup)
 cp -av src dest # Copy (archive mode, verbose)
 crontab -e # Edit current user's cron jobs
 crontab -l # List current user's cron jobs
@@ -39,6 +44,8 @@ dig -x 8.8.8.8 +short # Reverse DNS lookup
 dig @1.1.1.1 example.com +short # Query a specific resolver
 dig +short A example.com # Get A records only (short)
 dig example.com +short # DNS lookup (if installed)
+dnf install -y <pkg> # Install package (RHEL/Fedora)
+dnf update -y # Update packages (RHEL/Fedora)
 docker compose down --remove-orphans # Stop compose stack and clean orphan containers
 docker compose logs -f # Follow compose logs
 docker compose ps # Show compose services and state
@@ -74,6 +81,7 @@ file path # Identify file type
 find . -type f -mtime -7 # Find files modified in last 7 days
 find . -type f -name "*.log" # Find files by name
 findmnt # Show mounts in a tree (more readable than mount)
+firewall-cmd --list-all # Show firewall rules (firewalld)
 free -h # Memory usage
 git add -A # Stage all changes
 git commit -m "message" # Commit staged changes
@@ -97,6 +105,7 @@ id # User/group IDs
 ifconfig -a # Show interfaces (legacy net-tools; prefer ip a)
 ip a # Show interfaces and IPs
 ip r # Show routing table
+iptables -S # List iptables rules (legacy)
 journalctl -f # Follow journal logs (systemd)
 journalctl -u <service> -n 200 --no-pager # Service logs (systemd)
 journalctl -xe --no-pager # Recent errors (systemd)
@@ -122,12 +131,11 @@ kind get kubeconfig --name <cluster> > kubeconfig.kind.<cluster>.yaml # Export k
 kind load docker-image <image:tag> --name <cluster> --nodes <node> # Load image into a specific node
 kind load docker-image <image:tag> --name <cluster> # Load a locally-built image into the cluster
 kind version # Show kind version
+KUBECONFIG=./a.yaml:./b.yaml kubectl config view --flatten > kubeconfig.merged.yaml # Create a kubeconfig file by merging two kubeconfig yamls
 KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten # Merge kubeconfigs (print merged config)
 KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten > ~/.kube/config.merged # Merge kubeconfigs into a new file
 kubectl --kubeconfig <file> config get-contexts # Import/use another kubeconfig file (no merge)
 kubectl --kubeconfig ~/.kube/config.merged config get-contexts # Validate merged kubeconfig contexts
-cp -a ~/.kube/config ~/.kube/config.bak && KUBECONFIG=~/.kube/config:./new.yaml kubectl config view --flatten > ~/.kube/config # Append/merge a new kubeconfig yaml into your main kubeconfig (with backup)
-KUBECONFIG=./a.yaml:./b.yaml kubectl config view --flatten > kubeconfig.merged.yaml # Create a kubeconfig file by merging two kubeconfig yamls
 kubectl annotate ns <ns> note="..." # Add an annotation
 kubectl api-resources # List available resource kinds
 kubectl apply -f file.yml # Apply manifest
@@ -136,8 +144,8 @@ kubectl auth can-i get pods -n <ns> # Check RBAC permissions
 kubectl cluster-info # Cluster endpoints and DNS
 kubectl config current-context # Show current context
 kubectl config get-contexts # List kubeconfig contexts
-kubectl config set-context --current --namespace=<ns> # Set default namespace for current context
 kubectl config set-cluster <cluster-name> --insecure-skip-tls-verify=true # Disable TLS cert verification for a cluster (DANGER: insecure; prefer setting CA/cert)
+kubectl config set-context --current --namespace=<ns> # Set default namespace for current context
 kubectl config use-context <ctx> # Switch context
 kubectl config view --minify --raw # Export current context as kubeconfig (print to stdout)
 kubectl config view --minify --raw > kubeconfig.<ctx>.yaml # Export current context kubeconfig to file
@@ -186,7 +194,11 @@ less file # View file with pager
 ln -s target linkname # Create symlink
 ls -lah # List files (human, all, long)
 lsblk # List block devices
+lsof -i :443 # Show what is using port 443
 mkdir -p path/to/dir # Create directory tree
+mount -o ro /dev/sdb1 /mnt/usb # Mount read-only
+mount -t nfs server:/export /mnt/nfs # Mount NFS share
+mount /dev/sdb1 /mnt/usb # Mount a block device
 mount # Show mounted filesystems
 mv -v src dest # Move/rename (verbose)
 mysql -h 127.0.0.1 -P 3306 -u root -p # Connect to MySQL on host/port
@@ -244,35 +256,18 @@ sudo -E <command> # Run a command with preserved environment (be careful)
 sudo -l # Show sudo privileges
 sudo -u <user> <command> # Run as another user
 sudo !! # Re-run last command with sudo (bash history expansion)
-sudo apt autoremove -y # Remove unused deps (Debian/Ubuntu)
-sudo apt install -y <pkg> # Install package (Debian/Ubuntu)
-sudo apt remove -y <pkg> # Remove package (Debian/Ubuntu)
-sudo apt update # Update package lists (Debian/Ubuntu)
-sudo apt upgrade -y # Upgrade installed packages (Debian/Ubuntu)
-sudo dnf install -y <pkg> # Install package (RHEL/Fedora)
-sudo dnf update -y # Update packages (RHEL/Fedora)
-sudo firewall-cmd --list-all # Show firewall rules (firewalld)
-sudo iptables -S # List iptables rules (legacy)
-sudo lsof -i :443 # Show what is using port 443
-sudo mount -o ro /dev/sdb1 /mnt/usb # Mount read-only
-sudo mount -t nfs server:/export /mnt/nfs # Mount NFS share
-sudo mount /dev/sdb1 /mnt/usb # Mount a block device
-sudo systemctl disable --now <service> # Disable and stop service
-sudo systemctl enable --now <service> # Enable and start service
-sudo systemctl restart <service> # Restart service (systemd)
-sudo systemctl status <service> # Service status (systemd)
-sudo tcpdump -i any -nn port 53 # Capture DNS traffic (tcpdump)
-sudo ufw allow 22/tcp # Allow port (UFW)
-sudo ufw status verbose # Firewall status (UFW)
-sudo umount /mnt/path # Unmount filesystem
-sudo yum update -y # Update packages (legacy RHEL/CentOS)
 sudoedit /etc/hosts # Edit a root-owned file safely using your editor
+systemctl disable --now <service> # Disable and stop service
+systemctl enable --now <service> # Enable and start service
+systemctl restart <service> # Restart service (systemd)
+systemctl status <service> # Service status (systemd)
 tail -f file # Follow a file (tail -f)
 tail -n 200 -f /var/log/syslog # Follow syslog (Debian/Ubuntu)
 tail -n 200 file # Show last 200 lines
 tail -n 50 file # Show last 50 lines
 tar -czf archive.tgz folder # Create tar.gz archive
 tar -xzf archive.tgz # Extract tar.gz archive
+tcpdump -i any -nn port 53 # Capture DNS traffic (tcpdump)
 telnet example.com 80 # Telnet to host:port (plain text; for testing)
 time -v <command> # Time a command with resource usage (if available)
 time curl -fsSL https://example.com >/dev/null # Time a command (shell keyword)
@@ -280,7 +275,10 @@ timedatectl # Time/NTP status (systemd)
 top # Interactive process viewer
 touch file # Create empty file / update mtime
 traceroute 1.1.1.1 # Trace network path (if installed)
+ufw allow 22/tcp # Allow port (UFW)
+ufw status verbose # Firewall status (UFW)
 umask 027 # Default permissions for new files (safer)
+umount /mnt/path # Unmount filesystem
 uname -a # Kernel/system info
 unzip archive.zip -d /tmp/extract # Extract zip to a directory
 unzip archive.zip # Extract zip archive
@@ -292,5 +290,6 @@ wget -qO- https://example.com # Fetch URL (wget)
 while read -r line; do echo "$line"; done < file # Read a file line-by-line (bash)
 while true; do date; sleep 1; done # Infinite loop with 1s sleep (bash)
 whoami # Current user
+yum update -y # Update packages (legacy RHEL/CentOS)
 zip -r archive.zip folder/ -x "*.log" # Create zip excluding patterns
 zip -r archive.zip folder/ # Create zip archive from a folder

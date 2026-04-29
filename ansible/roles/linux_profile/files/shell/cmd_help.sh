@@ -1,58 +1,46 @@
-cmd_help() {
-  local use_color
-  use_color=0
-
-  if [[ -t 1 ]]; then
-    use_color=1
-    if command -v tput >/dev/null 2>&1; then
-      if [[ "$(tput colors 2>/dev/null || echo 0)" -lt 8 ]]; then
-        use_color=0
-      fi
-    fi
-  fi
-
-  if [[ $# -eq 0 ]]; then
-    _cmd_help_data | _cmd_help_format "${use_color}"
-  else
-    local output term
-    output="$(_cmd_help_data)"
-    for term in "$@"; do
-      output="$(printf '%s\n' "${output}" | grep -iF -- "${term}" || true)"
-      [[ -z "${output}" ]] && break
-    done
-    printf '%s\n' "${output}" | sed '/^$/d' | _cmd_help_format "${use_color}"
-  fi
-}
-
-_cmd_help_format() {
-  local use_color
-  use_color="${1:-0}"
-
-  awk -v color="${use_color}" '
-    BEGIN {
-      # Keep it subtle: command stays uncolored, comment is dimmed.
-      cmdc  = ""
-      hashc = "\033[2;90m" # dim dark gray
-      comc  = "\033[2;37m" # dim light gray
-      reset = "\033[0m"
-    }
-    {
-      line = $0
-      n = index(line, " # ")
-      if (n == 0) { print line; next }
-
-      cmd = substr(line, 1, n - 1)
-      com = substr(line, n + 3)
-
-      if (color == 1) {
-        printf "%s%s%s %s#%s %s%s%s\n", cmdc, cmd, reset, hashc, reset, comc, com, reset
-      } else {
-        printf "%s # %s\n", cmd, com
-      }
-    }
-  '
-}
-
 _cmd_help_data() {
   cat "$(dirname "${BASH_SOURCE[0]}")/cmdlist"
 }
+
+# Compatibility: keep `cmd_help` as an alias for the fzf-powered picker.
+cmd_help() {
+  cmd_help_fzf "$@"
+}
+
+cmd_help_fzf() {
+  if ! command -v fzf >/dev/null 2>&1; then
+    printf '%s\n' "fzf is not installed. Install it (e.g., apt install fzf) or use cmd_help." >&2
+    return 1
+  fi
+
+  local selection command_text query
+  query="${*:-}"
+
+  # Show full "command # comment" line and let both parts be searchable.
+  selection="$(_cmd_help_data | fzf --layout=reverse --height=60% --prompt='cmd> ' ${query:+-q "$query"})" || true
+  [[ -n "${selection}" ]] || return 0
+
+  # Strip the comment for insertion; keep full line available in the UI.
+  command_text="${selection%% # *}"
+  command_text="${command_text%$'\r'}"
+
+  if [[ "${READLINE_LINE+x}" == "x" ]]; then
+    READLINE_LINE="${command_text}"
+    READLINE_POINT=${#READLINE_LINE}
+    return 0
+  fi
+
+  printf '%s\n' "${command_text}"
+}
+
+__cmd_help_fzf_widget() {
+  cmd_help_fzf
+}
+
+# Bind Ctrl-x f to open cmd_help via fzf (bash/readline).
+# Bind in common keymaps so it works in both emacs and vi modes.
+if [[ -n "${BASH_VERSION-}" && $- == *i* ]]; then
+  for keymap in emacs-standard emacs-meta vi-insert vi-command; do
+    bind -m "${keymap}" -x '"\C-xf":__cmd_help_fzf_widget' 2>/dev/null || true
+  done
+fi

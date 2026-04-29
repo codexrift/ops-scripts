@@ -1,7 +1,7 @@
 ---
 - name: Setup Linux baseline
   hosts: linux
-  gather_facts: false
+  gather_facts: true
   become: true
 
   tasks:
@@ -16,6 +16,7 @@
           - build-essential
           - ca-certificates
           - curl
+          - fzf
           - git
           - htop
           - jq
@@ -28,6 +29,10 @@
           - wget
           - zip
         state: present
+
+    - name: Install Docker (role)
+      ansible.builtin.include_role:
+        name: geerlingguy.docker
 
     - name: Detect machine architecture
       ansible.builtin.command: uname -m
@@ -169,13 +174,16 @@
           APT::Periodic::Unattended-Upgrade "1";
 
     - name: Configure unattended-upgrades for security updates only
+      vars:
+        distro_id: "{{ ansible_facts.distribution | default('') }}"
+        distro_codename: "{{ ansible_facts.lsb.codename | default(ansible_facts.distribution_release | default('')) }}"
       ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/50unattended-upgrades
         mode: "0644"
         content: |
           Unattended-Upgrade::Origins-Pattern {
-                  "origin=${distro_id},codename=${distro_codename},label=${distro_id}-Security";
-                  "origin=${distro_id},codename=${distro_codename}-security,label=${distro_id}-Security";
+                  "origin={{ distro_id }},codename={{ distro_codename }},label={{ distro_id }}-Security";
+                  "origin={{ distro_id }},codename={{ distro_codename }}-security,label={{ distro_id }}-Security";
           };
 
           Unattended-Upgrade::Package-Blacklist {
