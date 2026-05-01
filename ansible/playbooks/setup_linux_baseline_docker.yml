@@ -1,0 +1,18 @@
+---
+- name: Setup Linux baseline (Docker)
+  hosts: linux
+  gather_facts: true
+  become: true
+
+  vars:
+    docker_manage_service: true
+    docker_primary_user: "{{ ansible_user_id | default(ansible_user) }}"
+
+  tasks:
+    - name: Install Docker (role)
+      ansible.builtin.include_role:
+        name: geerlingguy.docker
+      vars:
+        docker_service_manage: "{{ docker_manage_service }}"
+        docker_users:
+          - "{{ docker_primary_user }}"

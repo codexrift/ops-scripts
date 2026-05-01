@@ -2,17 +2,7 @@ _cmd_help_data() {
   cat "$(dirname "${BASH_SOURCE[0]}")/cmdlist"
 }
 
-# Compatibility: keep `cmd_help` as an alias for the fzf-powered picker.
-cmd_help() {
-  cmd_help_fzf "$@"
-}
-
 cmd_help_fzf() {
-  if ! command -v fzf >/dev/null 2>&1; then
-    printf '%s\n' "fzf is not installed. Install it (e.g., apt install fzf) or use cmd_help." >&2
-    return 1
-  fi
-
   local selection command_text query
   query="${*:-}"
 

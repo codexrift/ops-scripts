@@ -26,8 +26,11 @@ Default inventory file:
 ### Playbooks
 
 - `playbooks/ping.yml`: connectivity check (`ansible.builtin.ping`)
-- `playbooks/setup_linux_baseline.yml`: base packages + unattended security updates
-- `playbooks/setup_linux_shell.yml`: deploy shell profile (`linux_profile` role) + Starship setup
+- `playbooks/setup_linux_baseline_apt.yml`: base packages + dist upgrade
+- `playbooks/setup_linux_baseline_docker.yml`: Docker installation via `geerlingguy.docker`
+- `playbooks/setup_linux_baseline_k8s_tools.yml`: install `kubectl` + `kind` + `helm`
+- `playbooks/setup_linux_ssl_web.yml`: deploy SSL cert/key files and reload Apache/Nginx
+- `playbooks/setup_linux_shell.yml`: deploy shell profile snippets + Starship setup
 - `playbooks/install_docker.yml`: Docker installation via `geerlingguy.docker`
 - `playbooks/gather_linux_facts.yml`: gather full host facts to JSON files
 - `playbooks/dynamic_cartography.yml`: host-level cartography JSON + merged CSV snapshots
@@ -35,7 +38,6 @@ Default inventory file:
 
 ### Roles
 
-- `roles/linux_profile`: deploys shell snippets and bash init line
 - `roles/geerlingguy.docker`: Galaxy role dependency (installed via `requirements.yml`)
 
 Install Galaxy dependencies:
@@ -59,9 +61,9 @@ These are generated artifacts and are ignored by git.
 
 Source files:
 
-- `ansible/roles/linux_profile/files/shell/cmdhelp.sh`
-- `ansible/roles/linux_profile/files/shell/cmdlist`
-- `ansible/roles/linux_profile/files/shell/history.sh`
+- `ansible/files/shell/cmd_help.sh`
+- `ansible/files/shell/cmdlist`
+- `ansible/files/shell/history.sh`
 
 After running `setup_linux_shell.yml`, snippets are deployed to:
 

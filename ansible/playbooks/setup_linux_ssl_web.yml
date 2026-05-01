@@ -1,0 +1,115 @@
+---
+- name: Setup Linux web SSL certificates (Apache + Nginx)
+  hosts: linux
+  gather_facts: false
+  become: true
+
+  vars:
+    web_ssl_src_crt: "{{ playbook_dir }}/../files/ssl/web.crt"
+    web_ssl_src_key: "{{ playbook_dir }}/../files/ssl/web.key"
+
+    nginx_ssl_dest_crt: /etc/ssl/certs/nginx-selfsigned.crt
+    nginx_ssl_dest_key: /etc/ssl/private/nginx-selfsigned.key
+    apache_ssl_dest_crt: /etc/ssl/certs/apache-selfsigned.crt
+    apache_ssl_dest_key: /etc/ssl/private/apache-selfsigned.key
+
+  pre_tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Ensure SSL source files exist in repo
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: web_ssl_sources
+      loop:
+        - "{{ web_ssl_src_crt }}"
+        - "{{ web_ssl_src_key }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Require SSL source files
+      ansible.builtin.fail:
+        msg: "Missing SSL source file: {{ item.stat.path }} (create it in the repo first)"
+      when: not item.stat.exists
+      loop: "{{ web_ssl_sources.results }}"
+      delegate_to: localhost
+      run_once: true
+
+  tasks:
+    - name: Ensure /etc/ssl/private exists
+      ansible.builtin.file:
+        path: /etc/ssl/private
+        state: directory
+        owner: root
+        group: root
+        mode: "0710"
+
+    - name: Install SSL cert/key for Nginx
+      when: "'nginx.service' in ansible_facts.services"
+      block:
+        - name: Install nginx cert
+          ansible.builtin.copy:
+            src: "{{ web_ssl_src_crt }}"
+            dest: "{{ nginx_ssl_dest_crt }}"
+            owner: root
+            group: root
+            mode: "0644"
+            backup: true
+          notify: Reload nginx
+
+        - name: Install nginx key
+          ansible.builtin.copy:
+            src: "{{ web_ssl_src_key }}"
+            dest: "{{ nginx_ssl_dest_key }}"
+            owner: root
+            group: root
+            mode: "0600"
+            backup: true
+          notify: Reload nginx
+
+    - name: Install SSL cert/key for Apache
+      when: "'apache2.service' in ansible_facts.services"
+      block:
+        - name: Install apache cert
+          ansible.builtin.copy:
+            src: "{{ web_ssl_src_crt }}"
+            dest: "{{ apache_ssl_dest_crt }}"
+            owner: root
+            group: root
+            mode: "0644"
+            backup: true
+          notify: Reload apache2
+
+        - name: Install apache key
+          ansible.builtin.copy:
+            src: "{{ web_ssl_src_key }}"
+            dest: "{{ apache_ssl_dest_key }}"
+            owner: root
+            group: root
+            mode: "0600"
+            backup: true
+          notify: Reload apache2
+
+  handlers:
+    - name: Validate nginx config
+      ansible.builtin.command: nginx -t
+      changed_when: false
+      listen: Reload nginx
+
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+      listen: Reload nginx
+
+    - name: Validate apache config
+      ansible.builtin.command: apache2ctl configtest
+      changed_when: false
+      listen: Reload apache2
+
+    - name: Reload apache2
+      ansible.builtin.service:
+        name: apache2
+        state: reloaded
+      listen: Reload apache2
+

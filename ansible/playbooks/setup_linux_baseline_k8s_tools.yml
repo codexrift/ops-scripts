@@ -1,0 +1,165 @@
+---
+- name: Setup Linux baseline (Kubernetes CLI tools)
+  hosts: linux
+  gather_facts: false
+  become: true
+
+  vars:
+    kubectl_version_override: ""
+    kind_version_override: ""
+    helm_version_override: ""
+    github_token: ""
+    github_headers_base:
+      Accept: application/vnd.github+json
+      User-Agent: ops-scripts-ansible
+    github_headers: >-
+      {{
+        github_headers_base
+        | combine({'Authorization': 'Bearer ' ~ github_token} if (github_token | length) > 0 else {})
+      }}
+
+  tasks:
+    - name: Ensure /usr/local/bin exists
+      ansible.builtin.file:
+        path: /usr/local/bin
+        state: directory
+        mode: "0755"
+
+    - name: Detect machine architecture
+      ansible.builtin.command: uname -m
+      register: uname_m
+      changed_when: false
+
+    - name: Compute download architecture
+      ansible.builtin.set_fact:
+        tool_arch: >-
+          {{
+            'amd64' if uname_m.stdout in ['x86_64', 'amd64']
+            else 'arm64' if uname_m.stdout in ['aarch64', 'arm64']
+            else uname_m.stdout
+          }}
+
+    - name: Fetch latest stable kubectl version
+      ansible.builtin.uri:
+        url: https://dl.k8s.io/release/stable.txt
+        return_content: true
+        timeout: 30
+      register: kubectl_stable
+      changed_when: false
+      when: kubectl_version_override | length == 0
+
+    - name: Set kubectl version fact
+      ansible.builtin.set_fact:
+        kubectl_version: >-
+          {{
+            kubectl_version_override
+            if (kubectl_version_override | length) > 0
+            else (kubectl_stable.content | trim)
+          }}
+
+    - name: Fetch kubectl sha256
+      ansible.builtin.uri:
+        url: "https://dl.k8s.io/{{ kubectl_version }}/bin/linux/{{ tool_arch }}/kubectl.sha256"
+        return_content: true
+        timeout: 30
+      register: kubectl_sha
+      changed_when: false
+
+    - name: Install kubectl
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/{{ kubectl_version }}/bin/linux/{{ tool_arch }}/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+        checksum: "sha256:{{ kubectl_sha.content | trim }}"
+
+    - name: Fetch latest kind release metadata (GitHub API)
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/kubernetes-sigs/kind/releases/latest
+        return_content: true
+        timeout: 30
+        headers: "{{ github_headers }}"
+      register: kind_release
+      changed_when: false
+      when: kind_version_override | length == 0
+
+    - name: Set kind version fact
+      ansible.builtin.set_fact:
+        kind_version: >-
+          {{
+            kind_version_override
+            if (kind_version_override | length) > 0
+            else ((kind_release.content | from_json).tag_name)
+          }}
+
+    - name: Fetch kind sha256sum
+      ansible.builtin.uri:
+        url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ tool_arch }}.sha256sum"
+        return_content: true
+        timeout: 30
+      register: kind_sha
+      changed_when: false
+
+    - name: Install kind
+      ansible.builtin.get_url:
+        url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ tool_arch }}"
+        dest: /usr/local/bin/kind
+        mode: "0755"
+        checksum: "sha256:{{ (kind_sha.content | trim).split()[0] }}"
+
+    - name: Fetch latest helm release metadata (GitHub API)
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/helm/helm/releases/latest
+        return_content: true
+        timeout: 30
+        headers: "{{ github_headers }}"
+      register: helm_release
+      changed_when: false
+      when: helm_version_override | length == 0
+
+    - name: Set helm version fact
+      ansible.builtin.set_fact:
+        helm_version: >-
+          {{
+            helm_version_override
+            if (helm_version_override | length) > 0
+            else ((helm_release.content | from_json).tag_name)
+          }}
+
+    - name: Create temp dir for helm install
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: helm-
+      register: helm_tmp
+
+    - name: Fetch helm sha256sum (tarball)
+      ansible.builtin.uri:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ tool_arch }}.tar.gz.sha256sum"
+        return_content: true
+        timeout: 30
+      register: helm_sha
+      changed_when: false
+
+    - name: Download helm tarball
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ tool_arch }}.tar.gz"
+        dest: "{{ helm_tmp.path }}/helm.tar.gz"
+        mode: "0644"
+        checksum: "sha256:{{ (helm_sha.content | trim).split()[0] }}"
+
+    - name: Extract helm tarball
+      ansible.builtin.unarchive:
+        src: "{{ helm_tmp.path }}/helm.tar.gz"
+        dest: "{{ helm_tmp.path }}"
+        remote_src: true
+
+    - name: Install helm
+      ansible.builtin.copy:
+        src: "{{ helm_tmp.path }}/linux-{{ tool_arch }}/helm"
+        dest: /usr/local/bin/helm
+        mode: "0755"
+        remote_src: true
+
+    - name: Clean helm temp dir
+      ansible.builtin.file:
+        path: "{{ helm_tmp.path }}"
+        state: absent

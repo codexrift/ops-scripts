@@ -1,0 +1,315 @@
+apt autoremove -y   ### Remove unused deps (Debian/Ubuntu)
+apt install -y <pkg>   ### Install package (Debian/Ubuntu)
+apt list --upgradable   ### List upgradable packages (Debian/Ubuntu)
+apt remove -y <pkg>   ### Remove package (Debian/Ubuntu)
+apt update   ### Update package lists (Debian/Ubuntu)
+apt upgrade -y   ### Upgrade installed packages (Debian/Ubuntu)
+apt-cache policy <pkg>   ### Show candidate versions (Debian/Ubuntu)
+ansible --version   ### Show Ansible version/info
+ansible all -i inventory/hosts.ini -m ping   ### Ping all hosts (ad-hoc)
+ansible all -i inventory/hosts.ini -m shell -a "uptime"   ### Run a quick command on all hosts (ad-hoc)
+ansible all -i inventory/hosts.ini -b -K -m package -a "name=<pkg> state=present"   ### Install a package (ad-hoc; become + prompt for sudo pass)
+ansible-config dump --only-changed   ### Show effective config (only changed values)
+ansible-doc <module>   ### Show module docs/examples
+ansible-inventory -i inventory/hosts.ini --list   ### Render inventory as JSON
+ansible-galaxy collection install <namespace.collection>   ### Install a collection
+ansible-galaxy role install <role_name>   ### Install a role
+ansible-playbook -i inventory/hosts.ini playbook.yml   ### Run a playbook
+ansible-playbook -i inventory/hosts.ini playbook.yml --check --diff   ### Dry-run + show diffs (when supported)
+ansible-playbook -i inventory/hosts.ini playbook.yml --limit "<pattern>"   ### Run only a subset of hosts
+ansible-playbook -i inventory/hosts.ini playbook.yml --tags "tag1,tag2"   ### Run only tagged tasks
+ansible-playbook -i inventory/hosts.ini playbook.yml --skip-tags "tag1,tag2"   ### Skip tagged tasks
+ansible-playbook -i inventory/hosts.ini playbook.yml --start-at-task "<task name>"   ### Resume from a specific task
+ansible-playbook -i inventory/hosts.ini playbook.yml -e "key=value"   ### Extra vars (inline)
+ansible-playbook -i inventory/hosts.ini playbook.yml -e "@vars.yml"   ### Extra vars (from file)
+ansible-vault encrypt vars.yml   ### Encrypt a vars file
+ansible-vault view vars.yml   ### View an encrypted vars file
+ansible-vault edit vars.yml   ### Edit an encrypted vars file
+ansible-vault decrypt vars.yml   ### Decrypt a vars file
+ansible-vault rekey vars.yml   ### Change vault password/key for a file
+ansible-lint playbook.yml   ### Lint a playbook (if ansible-lint installed)
+awk "{print $1}" file   ### Print first column (awk)
+blkid   ### Show block device UUIDs/types
+cat /etc/os-release   ### Distribution info
+cat file   ### Print file contents
+cd -   ### Switch to previous directory
+chmod +x script.sh   ### Make file executable
+chmod 640 file   ### Set permissions (rw-r-----)
+chown user:group file   ### Change owner/group
+GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519' git clone git@github.com:username/repo.git   ### Clone a repo using a specific SSH private key instead of the default one
+cp -a ~/.kube/config ~/.kube/config.bak && KUBECONFIG=~/.kube/config:./new.yaml kubectl config view --flatten > ~/.kube/config   ### Append/merge a new kubeconfig yaml into your main kubeconfig (with backup)
+cp -av src dest   ### Copy (archive mode, verbose)
+crontab -e   ### Edit current user's cron jobs
+crontab -l   ### List current user's cron jobs
+curl -fL --retry 5 --retry-delay 2 https://example.com/file   ### Retry transient failures
+curl -fsSL -H "Authorization: Bearer <token>" -H "Accept: application/vnd.github.raw" https://api.github.com/repos/<org>/<repo>/contents/<path>   ### GitHub API: fetch raw file from repo
+curl -fsSL -H "Authorization: Bearer <token>" "https://api.github.com/user/repos?per_page=100&sort=updated"   ### GitHub API: list your repos
+curl -fsSL -H "Authorization: Bearer <token>" https://api.example.com   ### Add request header
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/rate_limit   ### GitHub API: check rate limits
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/repos/<org>/<repo>/releases/latest   ### GitHub API: latest release
+curl -fsSL -H "Authorization: Bearer <token>" https://api.github.com/user   ### GitHub API: show authenticated user
+curl -fsSL -H "Authorization: Bearer <token>" https://ghe.example.com/api/v3/rate_limit   ### GHE API: check rate limits
+curl -fsSL -H "Authorization: Bearer <token>" https://ghe.example.com/api/v3/user   ### GHE API: show authenticated user
+curl -fsSL -u user:pass https://example.com   ### Basic auth (prefer tokens)
+curl -fsSL -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"query":"{ viewer { login } }"}' https://api.github.com/graphql   ### GitHub GraphQL: whoami
+curl -fsSL -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"query":"{ viewer { login } }"}' https://ghe.example.com/api/graphql   ### GHE GraphQL: whoami
+curl -fsSL -X POST -H "Content-Type: application/json" -d '{"k":"v"}' https://api.example.com   ### POST JSON
+curl -fsSL https://example.com -o /dev/null -w "%{http_code}\n"   ### Print HTTP status code only
+curl -fsSL https://example.com   ### Fetch URL (fail on error)
+curl -fsSL https://example.com | sh   ### Download and pipe to shell (risky; prefer inspecting first)
+curl -fsSLo file.tgz https://example.com/file.tgz   ### Download to a file (-o)
+curl -I https://example.com   ### Fetch HTTP headers only
+cut -d ":" -f 1 /etc/passwd   ### Extract first field by delimiter
+date -Iseconds   ### ISO-8601 timestamp
+dd if=/dev/zero of=/tmp/1g.bin bs=1M count=1024 status=progress   ### Write a 1GiB file (disk throughput test)
+dd if=image.iso of=/dev/sdX bs=4M status=progress oflag=sync   ### Write ISO to disk (DANGER: overwrites /dev/sdX)
+df -h   ### Disk usage by filesystem
+dig -x 8.8.8.8 +short   ### Reverse DNS lookup
+dig @1.1.1.1 example.com +short   ### Query a specific resolver
+dig +short A example.com   ### Get A records only (short)
+dnf install -y <pkg>   ### Install package (RHEL/Fedora)
+dnf update -y   ### Update packages (RHEL/Fedora)
+docker compose down --remove-orphans   ### Stop compose stack and clean orphan containers
+docker compose logs -f   ### Follow compose logs
+docker compose ps   ### Show compose services and state
+docker compose up -d --pull always   ### Start/update compose stack in one command
+docker compose up -d   ### Start compose stack
+docker container prune -f   ### Remove all stopped containers
+docker exec -it <container> sh   ### Shell into a container
+docker image prune -a -f   ### Remove unused images (including dangling and unreferenced)
+docker images   ### List local images
+docker logs -f <container>   ### Follow container logs
+docker ps --filter "name=kind"   ### List kind node containers (Docker view)
+docker ps   ### List running containers
+docker rm -f $(docker ps -aq)   ### Delete all containers (running + stopped)
+docker run --rm -it --name alpine-test alpine:latest sh   ### Ephemeral test container shell (--rm auto-cleans)
+docker run -d --name grafana -p 3000:3000 --restart unless-stopped grafana/grafana:latest   ### Start Grafana (http://localhost:3000)
+docker run -d --name jenkins -p 8083:8080 -p 50000:50000 --restart unless-stopped jenkins/jenkins:lts-jdk17   ### Start Jenkins (http://localhost:8083)
+docker run -d --name loki -p 3100:3100 --restart unless-stopped grafana/loki:latest -config.file=/etc/loki/local-config.yaml   ### Start Loki (http://localhost:3100/ready)
+docker run -d --name nginx -p 80:80 --restart unless-stopped nginx:alpine   ### Start Nginx in one line (http://localhost)
+docker run -d --name ollama -p 11434:11434 --restart unless-stopped ollama/ollama:latest   ### Start Ollama API server (http://localhost:11434)
+docker run -d --name open-webui --network host -e OLLAMA_BASE_URL=http://127.0.0.1:11434 --restart unless-stopped ghcr.io/open-webui/open-webui:main   ### Start Open WebUI connected to local Ollama (http://localhost:8080)
+docker run -d --name openldap -p 389:389 -p 636:636 --restart unless-stopped -e LDAP_ORGANISATION="Example Inc" -e LDAP_DOMAIN="example.org" -e LDAP_ADMIN_PASSWORD="admin" osixia/openldap:latest   ### Start OpenLDAP (admin password: admin)
+docker run -d --name portainer -p 9443:9443 -p 9000:9000 --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:latest   ### Start Portainer in one line
+docker run -d --name prometheus -p 9090:9090 --restart unless-stopped prom/prometheus:latest   ### Start Prometheus (http://localhost:9090)
+docker run -d --name whoami -p 8081:80 --restart unless-stopped traefik/whoami:latest   ### Start whoami test service (http://localhost:8081)
+docker run -d --name zabbix-appliance -p 8082:80 -p 10051:10051 --restart unless-stopped zabbix/zabbix-appliance:latest   ### Start Zabbix appliance (http://localhost:8082)
+docker stop $(docker ps -q)   ### Stop all running containers
+docker system prune -a --volumes -f   ### TOTAL Docker cleanup/reset (containers, images, networks, volumes not in use)
+docker volume prune -f   ### Remove unused Docker volumes
+du -sh *   ### Disk usage per item (current dir)
+eval "$(ssh-agent -s)"   ### Start ssh-agent
+export HISTTIMEFORMAT="%F %T "   ### Add timestamps to history (bash)
+file path   ### Identify file type
+find . -type f -mtime -7   ### Find files modified in last 7 days
+find . -type f -name "*.log"   ### Find files by name
+findmnt   ### Show mounts in a tree (more readable than mount)
+firewall-cmd --list-all   ### Show firewall rules (firewalld)
+free -h   ### Memory usage
+git add -A   ### Stage all changes
+git commit -m "message"   ### Commit staged changes
+git diff   ### Show uncommitted changes
+git log --oneline --decorate -n 20   ### Recent commits (compact)
+git status   ### Show git working tree status
+grep -RIn "PATTERN" .   ### Search text recursively (grep)
+groups   ### Group memberships
+gunzip file.gz   ### Decompress gzip (alias of gzip -d)
+gzip -9 file   ### Maximum compression (slower)
+gzip -c file > file.gz   ### Write gzip output to stdout
+gzip -d file.gz   ### Decompress gzip file
+gzip file   ### Compress file -> file.gz
+head -n 50 file   ### Show first 50 lines
+history -c   ### Clear history for current session
+history   ### Show command history (bash)
+history | tail -n 50   ### Last 50 history entries
+hostnamectl   ### Host info (systemd)
+htop   ### Better process viewer (if installed)
+id   ### User/group IDs
+ifconfig -a   ### Show interfaces (legacy net-tools; prefer ip a)
+ip a   ### Show interfaces and IPs
+ip r   ### Show routing table
+iptables -S   ### List iptables rules (legacy)
+journalctl -f   ### Follow journal logs (systemd)
+journalctl -u <service> -n 200 --no-pager   ### Service logs (systemd)
+journalctl -xe --no-pager   ### Recent errors (systemd)
+jq -c ".items[]" file.json   ### #Linux compact output (one JSON per line)
+jq -e ".ok == true" file.json   ### #Linux exit non-zero if filter is false/null
+jq -r ".items[] | .id" file.json   ### #Linux extract field from each array element
+jq -r ".items[] | select(.enabled==true) | .id" file.json   ### #Linux filter objects then print id
+jq -r ".key" file.json   ### #Linux extract a string raw (no quotes)
+jq -s "." *.json   ### #Linux slurp multiple JSON files into an array
+jq "." file.json   ### Pretty-print JSON (jq)
+jq ".items | length" file.json   ### #Linux count array items
+kill -KILL <pid>   ### Force stop a process
+kill -TERM <pid>   ### Gracefully stop a process
+kind create cluster --name <cluster> --config kind-config.yaml   ### Create cluster from a config file (multi-node, port mappings)
+kind create cluster --name <cluster> --image kindest/node:<tag>   ### Create cluster with a specific node image/version
+kind create cluster --name <cluster>   ### Create a kind cluster (default 1-node)
+kind delete cluster --name <cluster>   ### Delete a kind cluster
+kind export kubeconfig --name <cluster>   ### Ensure kubeconfig context exists/updated for the cluster
+kind export logs --name <cluster> ./kind-logs   ### Export cluster logs for troubleshooting
+kind get clusters   ### List kind clusters
+kind get kubeconfig --name <cluster>   ### Print kubeconfig for a kind cluster (creates/exports kubectl config)
+kind get kubeconfig --name <cluster> > kubeconfig.kind.<cluster>.yaml   ### Export kind kubeconfig to file
+kind load docker-image <image:tag> --name <cluster> --nodes <node>   ### Load image into a specific node
+kind load docker-image <image:tag> --name <cluster>   ### Load a locally-built image into the cluster
+kind version   ### Show kind version
+KUBECONFIG=./a.yaml:./b.yaml kubectl config view --flatten > kubeconfig.merged.yaml   ### Create a kubeconfig file by merging two kubeconfig yamls
+KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten   ### Merge kubeconfigs (print merged config)
+KUBECONFIG=~/.kube/config:./other.yaml kubectl config view --flatten > ~/.kube/config.merged   ### Merge kubeconfigs into a new file
+kubectl --kubeconfig <file> config get-contexts   ### Import/use another kubeconfig file (no merge)
+kubectl --kubeconfig ~/.kube/config.merged config get-contexts   ### Validate merged kubeconfig contexts
+kubectl annotate ns <ns> note="..."   ### Add an annotation
+kubectl api-resources   ### List available resource kinds
+kubectl apply -f file.yml   ### Apply manifest
+kubectl apply -k ./dir   ### Apply kustomize directory
+kubectl auth can-i get pods -n <ns>   ### Check RBAC permissions
+kubectl cluster-info   ### Cluster endpoints and DNS
+kubectl config current-context   ### Show current context
+kubectl config get-contexts   ### List kubeconfig contexts
+kubectl config set-cluster <cluster-name> --insecure-skip-tls-verify=true   ### Disable TLS cert verification for a cluster (DANGER: insecure; prefer setting CA/cert)
+kubectl config set-context --current --namespace=<ns>   ### Set default namespace for current context
+kubectl config use-context <ctx>   ### Switch context
+kubectl config view --minify --raw   ### Export current context as kubeconfig (print to stdout)
+kubectl config view --minify --raw > kubeconfig.<ctx>.yaml   ### Export current context kubeconfig to file
+kubectl config view --minify   ### Show active context/cluster/user
+kubectl create configmap <name> -n <ns> --from-file=./dir/   ### ConfigMap from files
+kubectl create namespace <ns>   ### Create namespace
+kubectl create secret generic <name> -n <ns> --from-literal=key=value   ### Secret from literal (careful with shell history)
+kubectl delete -f file.yml   ### Delete resources defined in a manifest (careful)
+kubectl delete pod -n <ns> <pod>   ### Restart a pod (controller will recreate it)
+kubectl describe node <node>   ### Node details (capacity, allocatable, conditions)
+kubectl describe pod <pod> -n <ns>   ### Pod details (includes events)
+kubectl diff -f file.yml   ### Show changes before apply
+kubectl exec -it -n <ns> <pod> -- sh   ### Shell into a container (if available)
+kubectl exec -it -n <ns> <pod> -c <container> -- sh   ### Shell into a specific container
+kubectl explain deploy.spec.template.spec   ### Explain fields for a kind
+kubectl get all -n <ns>   ### Quick overview of common resources in a namespace
+kubectl get deploy,rs,po -n <ns>   ### Deployments, ReplicaSets, Pods
+kubectl get events -n <ns> --sort-by=.lastTimestamp   ### Recent events (sorted)
+kubectl get hpa -n <ns>   ### HorizontalPodAutoscaler status
+kubectl get ingress -A   ### Ingresses across namespaces
+kubectl get ns   ### List namespaces
+kubectl get pod <pod> -n <ns> -o jsonpath='{.spec.nodeName}{"\n"}'   ### Extract a field (jsonpath)
+kubectl get pod <pod> -n <ns> -o yaml   ### Dump resource YAML
+kubectl get pods -A   ### List pods across all namespaces
+kubectl get pods -n <ns> --field-selector=status.phase!=Running   ### Filter by field selector
+kubectl get pods -n <ns> -l app=<label>   ### Filter by label selector
+kubectl get pods -n <ns> -o wide   ### Pods with node/IP details
+kubectl get secret <name> -n <ns> -o jsonpath='{.data.key}' | base64 -d; echo   ### Decode one secret key
+kubectl get svc,ep -n <ns>   ### Services and endpoints
+kubectl label ns <ns> owner=<team>   ### Add a label
+kubectl logs -n <ns> -l app=<label> --tail=200   ### Logs by label selector
+kubectl logs -n <ns> <pod> --since=1h   ### Logs in the last hour
+kubectl logs -n <ns> <pod> -c <container>   ### Pod logs (specific container)
+kubectl logs -n <ns> <pod>   ### Pod logs (single container)
+kubectl port-forward -n <ns> pod/<pod> 8080:8080   ### Port-forward a Pod
+kubectl port-forward -n <ns> svc/<svc> 8080:80   ### Port-forward a Service
+kubectl rollout history -n <ns> deploy/<deploy>   ### Rollout history
+kubectl rollout status -n <ns> deploy/<deploy>   ### Watch a rollout
+kubectl rollout undo -n <ns> deploy/<deploy>   ### Roll back last rollout
+kubectl scale -n <ns> deploy/<deploy> --replicas=3   ### Scale deployment
+kubectl set image -n <ns> deploy/<deploy> <container>=<image>:<tag>   ### Update image
+kubectl top nodes   ### Node CPU/memory (metrics-server required)
+kubectl top pods -n <ns>   ### Pod CPU/memory (metrics-server required)
+kubectl version --client   ### Show kubectl client version
+less file   ### View file with pager
+ln -s target linkname   ### Create symlink
+ls -lah   ### List files (human, all, long)
+lsblk   ### List block devices
+lsof -i :443   ### Show what is using port 443
+mkdir -p path/to/dir   ### Create directory tree
+mount -o ro /dev/sdb1 /mnt/usb   ### Mount read-only
+mount -t nfs server:/export /mnt/nfs   ### Mount NFS share
+mount /dev/sdb1 /mnt/usb   ### Mount a block device
+mount   ### Show mounted filesystems
+mv -v src dest   ### Move/rename (verbose)
+mysql -h 127.0.0.1 -P 3306 -u root -p   ### Connect to MySQL on host/port
+mysql -u root -p -e "SHOW DATABASES;"   ### Run a one-off query and exit
+mysql -u root -p   ### Connect to MySQL (prompts for password)
+mysql -u root -p < appdb.sql   ### Restore a dump into MySQL
+mysqldump -u root -p --all-databases > all.sql   ### Dump all databases (admin)
+mysqldump -u root -p --databases appdb > appdb.sql   ### Dump a database to a SQL file
+mysqldump -u root -p --single-transaction --quick --routines --triggers appdb > appdb.sql   ### Safer dump for InnoDB + include routines/triggers
+nc -l -p <port>   ### Start a TCP listener on a port (traditional netcat syntax)
+nc -lv 0.0.0.0 <port>   ### Start a TCP listener on all interfaces (OpenBSD netcat syntax)
+nc -ulv 0.0.0.0 <port>   ### Start a UDP listener on all interfaces (OpenBSD netcat syntax)
+nc -vz host 443   ### Test TCP port reachability (netcat)
+netstat -natup | grep LISTEN | sort -k 7   ### List listening ports and sort by program name (legacy net-tools)
+nslookup example.com   ### DNS lookup (fallback)
+ping -c 4 1.1.1.1   ### Test connectivity
+pkill -f "pattern"   ### Kill by process command line match
+ps aux --sort=-%cpu | head   ### Top CPU processes
+ps aux --sort=-%mem | head   ### Top memory processes
+ps aux   ### List processes
+ps awxf   ### Process tree with full command lines (ps)
+pwd   ### Print working directory
+python3 -m http.server <port> --bind 0.0.0.0   ### Simple HTTP listener on all interfaces (Python)
+rg "PATTERN" .   ### Search text fast (ripgrep)
+rm -i file   ### Remove file (confirm)
+rm -rf dir   ### Remove directory tree (danger)
+rsync -avh --bwlimit=10m src/ dest/   ### Throttle bandwidth (10 MB/s)
+rsync -avh --delete src/ dest/   ### Mirror dest to match src (deletes extra files)
+rsync -avh --exclude ".git/" --exclude "node_modules/" src/ dest/   ### Exclude patterns
+rsync -avh --partial --inplace --progress bigfile user@host:/path/   ### Resume large file transfers
+rsync -avh --progress src/ dest/   ### Copy/sync efficiently (rsync)
+rsync -avh -e "ssh -i ~/.ssh/id_ed25519" src/ user@host:/dest/   ### rsync over SSH with specific key
+rsync -avhn --delete src/ dest/   ### Dry-run mirror (shows what would change)
+scp file user@host:/tmp/   ### Copy file over SSH (scp)
+sed -n "1,120p" file   ### Print lines 1..120
+sort file | uniq -c | sort -nr   ### Count unique lines (top first)
+source ~/.bashrc   ### Reload bashrc
+ss -tulpn   ### Listening sockets and PIDs
+ssh -D 127.0.0.1:1080 -N user@bastion   ### SOCKS proxy (dynamic tunnel; configure browser to use 127.0.0.1:1080)
+ssh -i ~/.ssh/id_ed25519 user@host   ### SSH with specific key
+ssh -J user@bastion user@target   ### SSH to target via bastion (Jump host)
+ssh -L 127.0.0.1:5432:db.internal:5432 user@bastion   ### Local tunnel (local 5432 -> db.internal:5432 via bastion)
+ssh -L 127.0.0.1:8080:127.0.0.1:80 user@host   ### Local tunnel to a remote localhost service
+ssh -N -f -L 127.0.0.1:3306:127.0.0.1:3306 user@host   ### Background local tunnel (-N no shell, -f background)
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 user@host   ### Keepalive to reduce idle disconnects
+ssh user@host   ### SSH to remote host
+ssh-add ~/.ssh/id_ed25519   ### Add key to ssh-agent
+ssh-keygen -l -f ~/.ssh/id_ed25519.pub   ### Show public key fingerprint
+ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519 -C "you@example.com"   ### Generate ed25519 key (use a passphrase; stronger KDF rounds)
+ssh-keygen -t ed25519-sk -O resident -O verify-required -f ~/.ssh/id_ed25519_sk -C "you@example.com"   ### Generate FIDO2 security-key SSH key (best practice if available)
+ssh-keygen -t rsa -b 4096 -a 100 -f ~/.ssh/id_rsa -C "you@example.com"   ### RSA fallback for legacy systems (prefer ed25519)
+stat file   ### Show file metadata
+sudo -E <command>   ### Run a command with preserved environment (be careful)
+sudo -l   ### Show sudo privileges
+sudo -u <user> <command>   ### Run as another user
+sudo !!   ### Re-run last command with sudo (bash history expansion)
+sudoedit /etc/hosts   ### Edit a root-owned file safely using your editor
+systemctl disable --now <service>   ### Disable and stop service
+systemctl enable --now <service>   ### Enable and start service
+systemctl restart <service>   ### Restart service (systemd)
+systemctl status <service>   ### Service status (systemd)
+tail -f file   ### Follow a file (tail -f)
+tail -n 200 -f /var/log/syslog   ### Follow syslog (Debian/Ubuntu)
+tail -n <n> file   ### Show last N lines
+tar -czf archive.tgz folder   ### Create tar.gz archive
+tar -xzf archive.tgz   ### Extract tar.gz archive
+tcpdump -i any -nn port 53   ### Capture DNS traffic (tcpdump)
+telnet example.com 80   ### Telnet to host:port (plain text; for testing)
+time -v <command>   ### Time a command with resource usage (if available)
+time curl -fsSL https://example.com >/dev/null   ### Time a command (shell keyword)
+timedatectl   ### Time/NTP status (systemd)
+top   ### Interactive process viewer
+touch file   ### Create empty file / update mtime
+traceroute 1.1.1.1   ### Trace network path (if installed)
+ufw allow 22/tcp   ### Allow port (UFW)
+ufw status verbose   ### Firewall status (UFW)
+umask 027   ### Default permissions for new files (safer)
+umount /mnt/path   ### Unmount filesystem
+uname -a   ### Kernel/system info
+unzip archive.zip -d /tmp/extract   ### Extract zip to a directory
+unzip archive.zip   ### Extract zip archive
+uptime   ### Uptime and load
+wget --spider https://example.com   ### Check URL exists without downloading
+wget -O file.tgz https://example.com/file.tgz   ### Download to a file (wget)
+wget -qO- https://example.com   ### Fetch URL (wget)
+while read -r line; do echo "$line"; done < file   ### Read a file line-by-line (bash)
+while true; do date; sleep 1; done   ### Infinite loop with 1s sleep (bash)
+whoami   ### Current user
+yum update -y   ### Update packages (legacy RHEL/CentOS)
+zip -r archive.zip folder/ -x "*.log"   ### Create zip excluding patterns
+zip -r archive.zip folder/   ### Create zip archive from a folder
