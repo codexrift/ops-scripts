@@ -27,6 +27,23 @@ select choice in "Install/Update galaxy roles" playbooks/*.yml; do
     extra=(-K)
   fi
 
-  ANSIBLE_ROLES_PATH="$(pwd -P)/roles:$(pwd -P)/playbooks/roles" ansible-playbook -vv -i inventory/hosts.ini "${extra[@]}" "${ansible_args[@]}" "$playbook"
+  export ANSIBLE_ROLES_PATH
+  ANSIBLE_ROLES_PATH="$(pwd -P)/roles:$(pwd -P)/playbooks/roles"
+
+  echo
+  echo "Target hosts (ansible-playbook --list-hosts):"
+  if ! ansible-playbook -i inventory/hosts.ini "${ansible_args[@]}" --list-hosts "$playbook"; then
+    echo "Failed to list hosts. Aborting."
+    exit 1
+  fi
+
+  echo
+  read -r -p "Proceed with running ${playbook}? [y/N] " confirm
+  case "${confirm}" in
+    y|Y|yes|YES|Yes) ;;
+    *) echo "Aborted."; exit 0 ;;
+  esac
+
+  ansible-playbook -vv -i inventory/hosts.ini "${extra[@]}" "${ansible_args[@]}" "$playbook"
   break
 done
